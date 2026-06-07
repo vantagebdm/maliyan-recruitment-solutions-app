@@ -21,6 +21,7 @@ const navItems = [
   { label: 'Reports', icon: BarChart3, path: '/reports' },
   { label: 'AI Assistant', icon: Bot, path: '/ai-assistant' },
   { label: 'Settings', icon: Settings, path: '/settings' },
+  { label: 'Brainstorm', icon: MessageSquare, path: '/brainstorm' },
 ];
 
 export default function Sidebar() {

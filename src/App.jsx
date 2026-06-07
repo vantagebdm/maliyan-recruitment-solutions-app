@@ -27,6 +27,7 @@ import JobOrders from '@/pages/JobOrders';
 import Reports from '@/pages/Reports';
 import AIAssistant from '@/pages/AIAssistant';
 import Settings from '@/pages/Settings';
+import Brainstorm from '@/pages/Brainstorm';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -72,6 +73,7 @@ const AuthenticatedApp = () => {
           <Route path="/reports" element={<Reports />} />
           <Route path="/ai-assistant" element={<AIAssistant />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/brainstorm" element={<Brainstorm />} />
         </Route>
       </Route>
 
