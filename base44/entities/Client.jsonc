@@ -1,0 +1,58 @@
+{
+  "name": "Client",
+  "type": "object",
+  "properties": {
+    "company_name": {
+      "type": "string"
+    },
+    "abn": {
+      "type": "string"
+    },
+    "industry": {
+      "type": "string"
+    },
+    "primary_contact_name": {
+      "type": "string"
+    },
+    "primary_contact_email": {
+      "type": "string"
+    },
+    "primary_contact_phone": {
+      "type": "string"
+    },
+    "billing_address": {
+      "type": "string"
+    },
+    "site_locations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "approved_rates": {
+      "type": "string",
+      "description": "JSON or description of approved rates"
+    },
+    "payment_terms": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "prospect"
+      ],
+      "default": "active"
+    },
+    "logo_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_name"
+  ]
+}

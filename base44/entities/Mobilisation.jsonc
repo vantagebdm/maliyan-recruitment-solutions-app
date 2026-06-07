@@ -1,0 +1,101 @@
+{
+  "name": "Mobilisation",
+  "type": "object",
+  "properties": {
+    "candidate_id": {
+      "type": "string"
+    },
+    "candidate_name": {
+      "type": "string"
+    },
+    "placement_id": {
+      "type": "string"
+    },
+    "job_id": {
+      "type": "string"
+    },
+    "job_title": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "site": {
+      "type": "string"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "checklist": {
+      "type": "object",
+      "properties": {
+        "candidate_selected": {
+          "type": "boolean",
+          "default": false
+        },
+        "compliance_checked": {
+          "type": "boolean",
+          "default": false
+        },
+        "medical_checked": {
+          "type": "boolean",
+          "default": false
+        },
+        "contract_issued": {
+          "type": "boolean",
+          "default": false
+        },
+        "travel_booked": {
+          "type": "boolean",
+          "default": false
+        },
+        "accommodation_booked": {
+          "type": "boolean",
+          "default": false
+        },
+        "site_induction_completed": {
+          "type": "boolean",
+          "default": false
+        },
+        "ppe_confirmed": {
+          "type": "boolean",
+          "default": false
+        },
+        "client_notified": {
+          "type": "boolean",
+          "default": false
+        },
+        "start_date_confirmed": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "mobilised",
+        "on_site",
+        "completed",
+        "cancelled"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "candidate_id",
+    "job_id"
+  ]
+}

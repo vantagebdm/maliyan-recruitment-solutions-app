@@ -1,0 +1,175 @@
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Search, Building2, Phone, Mail } from 'lucide-react';
+import StatusBadge from '../components/shared/StatusBadge';
+
+export default function Clients() {
+  const [search, setSearch] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState({});
+  const queryClient = useQueryClient();
+
+  const { data: clients = [], isLoading } = useQuery({
+    queryKey: ['clients'],
+    queryFn: () => base44.entities.Client.list('-created_date'),
+    initialData: [],
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.Client.create(data),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['clients'] }); setShowForm(false); },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Client.update(id, data),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['clients'] }); setShowForm(false); setEditing(null); },
+  });
+
+  const openForm = (client) => {
+    setEditing(client);
+    setForm(client ? { ...client } : { status: 'active' });
+    setShowForm(true);
+  };
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    if (editing) {
+      updateMutation.mutate({ id: editing.id, data: form });
+    } else {
+      createMutation.mutate(form);
+    }
+  };
+
+  const update = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
+
+  const filtered = clients.filter(c =>
+    c.company_name?.toLowerCase().includes(search.toLowerCase()) ||
+    c.primary_contact_name?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Clients</h1>
+          <p className="text-sm text-muted-foreground mt-1">{clients.length} total clients</p>
+        </div>
+        <Button onClick={() => openForm(null)} className="gap-2">
+          <Plus className="w-4 h-4" /> Add Client
+        </Button>
+      </div>
+
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input placeholder="Search clients..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <div className="w-6 h-6 border-2 border-muted border-t-primary rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map(client => (
+            <div
+              key={client.id}
+              onClick={() => openForm(client)}
+              className="bg-card rounded-xl border border-border p-5 hover:shadow-md transition-all cursor-pointer"
+            >
+              <div className="flex items-start gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Building2 className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm">{client.company_name}</h3>
+                  <StatusBadge status={client.status} className="mt-1" />
+                </div>
+              </div>
+              {client.primary_contact_name && (
+                <p className="text-sm font-medium mb-1">{client.primary_contact_name}</p>
+              )}
+              <div className="space-y-1 text-xs text-muted-foreground">
+                {client.primary_contact_email && (
+                  <p className="flex items-center gap-1.5"><Mail className="w-3 h-3" />{client.primary_contact_email}</p>
+                )}
+                {client.primary_contact_phone && (
+                  <p className="flex items-center gap-1.5"><Phone className="w-3 h-3" />{client.primary_contact_phone}</p>
+                )}
+                {client.industry && <p className="mt-2 font-medium text-foreground">{client.industry}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editing ? 'Edit Client' : 'Add Client'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSave} className="space-y-4">
+            <div>
+              <Label>Company Name *</Label>
+              <Input value={form.company_name || ''} onChange={e => update('company_name', e.target.value)} required />
+            </div>
+            <div>
+              <Label>ABN</Label>
+              <Input value={form.abn || ''} onChange={e => update('abn', e.target.value)} />
+            </div>
+            <div>
+              <Label>Industry</Label>
+              <Input value={form.industry || ''} onChange={e => update('industry', e.target.value)} />
+            </div>
+            <div>
+              <Label>Primary Contact Name</Label>
+              <Input value={form.primary_contact_name || ''} onChange={e => update('primary_contact_name', e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Contact Email</Label>
+                <Input value={form.primary_contact_email || ''} onChange={e => update('primary_contact_email', e.target.value)} />
+              </div>
+              <div>
+                <Label>Contact Phone</Label>
+                <Input value={form.primary_contact_phone || ''} onChange={e => update('primary_contact_phone', e.target.value)} />
+              </div>
+            </div>
+            <div>
+              <Label>Billing Address</Label>
+              <Textarea value={form.billing_address || ''} onChange={e => update('billing_address', e.target.value)} className="h-16" />
+            </div>
+            <div>
+              <Label>Status</Label>
+              <Select value={form.status || 'active'} onValueChange={v => update('status', v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="prospect">Prospect</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Notes</Label>
+              <Textarea value={form.notes || ''} onChange={e => update('notes', e.target.value)} className="h-16" />
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+                {editing ? 'Update' : 'Add Client'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

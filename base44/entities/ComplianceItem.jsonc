@@ -1,0 +1,79 @@
+{
+  "name": "ComplianceItem",
+  "type": "object",
+  "properties": {
+    "candidate_id": {
+      "type": "string"
+    },
+    "candidate_name": {
+      "type": "string"
+    },
+    "item_type": {
+      "type": "string",
+      "enum": [
+        "drivers_licence",
+        "trade_certificate",
+        "white_card",
+        "high_risk_licence",
+        "working_at_heights",
+        "confined_space",
+        "first_aid",
+        "voc",
+        "site_induction",
+        "medical",
+        "drug_alcohol",
+        "police_clearance",
+        "right_to_work",
+        "superannuation",
+        "tax_file_declaration",
+        "bank_details",
+        "employment_contract",
+        "other"
+      ]
+    },
+    "document_name": {
+      "type": "string"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "issue_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "reminder_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "verified",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "compliance_status": {
+      "type": "string",
+      "enum": [
+        "compliant",
+        "expiring_soon",
+        "expired",
+        "missing"
+      ],
+      "default": "missing"
+    },
+    "admin_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "candidate_id",
+    "item_type"
+  ]
+}

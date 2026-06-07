@@ -1,0 +1,32 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "recruitment_manager",
+        "recruiter",
+        "mobilisation_coordinator",
+        "payroll",
+        "client",
+        "candidate",
+        "employee"
+      ],
+      "default": "candidate"
+    },
+    "company": {
+      "type": "string",
+      "description": "For multi-company structure"
+    },
+    "candidate_id": {
+      "type": "string",
+      "description": "Linked candidate record"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "Linked client record"
+    }
+  }
+}

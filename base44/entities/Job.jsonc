@@ -1,0 +1,142 @@
+{
+  "name": "Job",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Job title"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "Reference to Client entity"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Client company name"
+    },
+    "location": {
+      "type": "string"
+    },
+    "site": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "QLD",
+        "NSW",
+        "VIC",
+        "WA",
+        "SA",
+        "TAS",
+        "NT",
+        "ACT"
+      ]
+    },
+    "roster": {
+      "type": "string",
+      "description": "e.g. 2/1 FIFO, 8/6 DIDO"
+    },
+    "shift_hours": {
+      "type": "string"
+    },
+    "pay_rate": {
+      "type": "number"
+    },
+    "charge_rate": {
+      "type": "number"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "duration": {
+      "type": "string"
+    },
+    "positions_available": {
+      "type": "number",
+      "default": 1
+    },
+    "positions_filled": {
+      "type": "number",
+      "default": 0
+    },
+    "required_skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_licences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "required_compliance": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "description": {
+      "type": "string"
+    },
+    "accommodation_required": {
+      "type": "boolean",
+      "default": false
+    },
+    "travel_required": {
+      "type": "boolean",
+      "default": false
+    },
+    "purchase_order": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "open",
+        "filled",
+        "on_hold",
+        "closed",
+        "cancelled"
+      ],
+      "default": "draft"
+    },
+    "job_type": {
+      "type": "string",
+      "enum": [
+        "FIFO",
+        "DIDO",
+        "Local",
+        "Residential",
+        "Shutdown"
+      ]
+    },
+    "industry": {
+      "type": "string",
+      "enum": [
+        "Mining",
+        "Transport",
+        "Heavy Diesel",
+        "Shutdown",
+        "Mechanical",
+        "Civil",
+        "Electrical",
+        "Construction",
+        "Oil & Gas",
+        "Other"
+      ]
+    }
+  },
+  "required": [
+    "title",
+    "status"
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "name": "Candidate",
+  "type": "object",
+  "properties": {
+    "first_name": {
+      "type": "string"
+    },
+    "last_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "QLD",
+        "NSW",
+        "VIC",
+        "WA",
+        "SA",
+        "TAS",
+        "NT",
+        "ACT"
+      ]
+    },
+    "trade": {
+      "type": "string"
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "licences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "resume_url": {
+      "type": "string"
+    },
+    "photo_url": {
+      "type": "string"
+    },
+    "fifo_available": {
+      "type": "boolean",
+      "default": false
+    },
+    "roster_preference": {
+      "type": "string"
+    },
+    "pay_rate_expectation": {
+      "type": "number"
+    },
+    "availability_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "previous_clients": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rating": {
+      "type": "number",
+      "description": "1-5 rating"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "pipeline_stage": {
+      "type": "string",
+      "enum": [
+        "new_applicant",
+        "resume_review",
+        "phone_screen",
+        "interview",
+        "reference_check",
+        "compliance_check",
+        "medical_required",
+        "ready_for_placement",
+        "offered",
+        "accepted",
+        "mobilising",
+        "active",
+        "rejected",
+        "talent_pool"
+      ],
+      "default": "new_applicant"
+    },
+    "compliance_status": {
+      "type": "string",
+      "enum": [
+        "compliant",
+        "expiring_soon",
+        "non_compliant",
+        "pending"
+      ],
+      "default": "pending"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "blacklisted"
+      ],
+      "default": "active"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Linked user account ID"
+    }
+  },
+  "required": [
+    "first_name",
+    "last_name",
+    "email"
+  ]
+}
