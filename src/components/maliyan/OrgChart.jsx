@@ -89,15 +89,17 @@ function OrgNode({ node, allDepts, onSelect, selectedId, depth = 0 }) {
 function buildTree(nodes) {
   const map = {};
   nodes.forEach(n => { map[n.id] = { ...n, children: [] }; });
-  const roots = [];
+  const hasParent = new Set();
   nodes.forEach(n => {
-    if (n.reports_to && map[n.reports_to]) {
-      map[n.reports_to].children.push(map[n.id]);
-    } else {
-      roots.push(map[n.id]);
-    }
+    const parents = Array.isArray(n.reports_to) ? n.reports_to : (n.reports_to ? [n.reports_to] : []);
+    parents.forEach(pid => {
+      if (map[pid]) {
+        map[pid].children.push(map[n.id]);
+        hasParent.add(n.id);
+      }
+    });
   });
-  return roots;
+  return nodes.filter(n => !hasParent.has(n.id)).map(n => map[n.id]);
 }
 
 function DetailPanel({ node, allNodes, onUpdate, onClose }) {
@@ -147,11 +149,23 @@ function DetailPanel({ node, allNodes, onUpdate, onClose }) {
             )}
 
             {/* Reports to */}
-            {node.reports_to && (
-              <Section title="Reports To" icon={Users}>
-                <p className="text-sm text-foreground">{allNodes.find(n => n.id === node.reports_to)?.name || '—'}</p>
-              </Section>
-            )}
+            {(() => {
+              const parents = Array.isArray(node.reports_to) ? node.reports_to : (node.reports_to ? [node.reports_to] : []);
+              return parents.length > 0 ? (
+                <Section title="Reports To" icon={Users}>
+                  <div className="flex flex-wrap gap-2">
+                    {parents.map(pid => {
+                      const p = allNodes.find(n => n.id === pid);
+                      return p ? (
+                        <span key={pid} className="text-xs bg-muted px-2 py-1 rounded-full border border-border">
+                          {p.name || p.role || pid}
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
+                </Section>
+              ) : null;
+            })()}
 
             {/* Job Description */}
             <Section title="Job Description" icon={Briefcase}>
@@ -189,16 +203,42 @@ function DetailPanel({ node, allNodes, onUpdate, onClose }) {
               <EditField label="Phone" value={form.phone} onChange={v => set('phone', v)} />
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1">Reports To</label>
-                <select
-                  value={form.reports_to || ''}
-                  onChange={e => set('reports_to', e.target.value || null)}
-                  className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
-                >
-                  <option value="">— None (Top Level) —</option>
-                  {allNodes.filter(n => n.id !== node.id).map(n => (
-                    <option key={n.id} value={n.id}>{n.name || n.role || n.id}</option>
-                  ))}
-                </select>
+                <div className="border border-input rounded-md bg-background max-h-48 overflow-y-auto divide-y divide-border">
+                  {allNodes.filter(n => n.id !== node.id).map(n => {
+                    const selected = Array.isArray(form.reports_to) ? form.reports_to : (form.reports_to ? [form.reports_to] : []);
+                    const checked = selected.includes(n.id);
+                    const toggle = () => {
+                      const next = checked ? selected.filter(id => id !== n.id) : [...selected, n.id];
+                      set('reports_to', next.length > 0 ? next : null);
+                    };
+                    return (
+                      <label key={n.id} className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors">
+                        <input type="checkbox" checked={checked} onChange={toggle} className="w-4 h-4 accent-primary" />
+                        <span className="text-sm">{n.name || n.role || n.id}</span>
+                        {n.role && n.name && <span className="text-xs text-muted-foreground ml-auto">{n.role}</span>}
+                      </label>
+                    );
+                  })}
+                  {allNodes.filter(n => n.id !== node.id).length === 0 && (
+                    <p className="text-xs text-muted-foreground px-3 py-2">No other positions available.</p>
+                  )}
+                </div>
+                {(() => {
+                  const selected = Array.isArray(form.reports_to) ? form.reports_to : (form.reports_to ? [form.reports_to] : []);
+                  return selected.length > 0 ? (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {selected.map(id => {
+                        const p = allNodes.find(n => n.id === id);
+                        return (
+                          <span key={id} className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                            {p?.name || p?.role || id}
+                            <button onClick={() => set('reports_to', selected.filter(s => s !== id))} className="hover:text-destructive"><X className="w-3 h-3" /></button>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  ) : <p className="text-xs text-muted-foreground mt-1">None selected — will appear at top level.</p>;
+                })()}
               </div>
               <EditField label="Job Description" value={form.job_description} onChange={v => set('job_description', v)} multiline />
               <div>
@@ -270,7 +310,7 @@ export default function OrgChart({ nodes, onChange }) {
       department: '',
       email: '',
       phone: '',
-      reports_to: null,
+      reports_to: [],
       job_description: '',
       kpis: [],
       notes: '',
