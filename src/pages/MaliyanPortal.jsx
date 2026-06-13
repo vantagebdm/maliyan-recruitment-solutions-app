@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Building2, Upload, X } from 'lucide-react';
+import { ArrowLeft, Building2, Upload, X, ArrowRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import PartnerPortal from '@/components/maliyan/PartnerPortal';
 
 const PARTNERS = [
   { id: 'sts', name: 'STS', fullName: 'STS Recruitment' },
@@ -10,7 +11,7 @@ const PARTNERS = [
   { id: 'mip', name: 'MIP Hydraulics', fullName: 'MIP Hydraulics' },
 ];
 
-function PartnerCard({ partner, logo, onLogoUpload, onLogoRemove }) {
+function PartnerCard({ partner, logo, onLogoUpload, onLogoRemove, onOpen }) {
   const [uploading, setUploading] = useState(false);
 
   const handleFileChange = async (e) => {
@@ -64,11 +65,20 @@ function PartnerCard({ partner, logo, onLogoUpload, onLogoRemove }) {
           <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={uploading} />
         </label>
       )}
+
+      {/* Open Portal */}
+      <button
+        onClick={onOpen}
+        className="mt-1 w-full flex items-center justify-center gap-2 text-sm font-semibold bg-primary text-primary-foreground rounded-lg py-2 hover:bg-primary/90 transition-colors"
+      >
+        Open Portal <ArrowRight className="w-4 h-4" />
+      </button>
     </div>
   );
 }
 
 export default function MaliyanPortal() {
+  const [openPartner, setOpenPartner] = useState(null);
   const [logos, setLogos] = useState(() => {
     try { return JSON.parse(localStorage.getItem('maliyan_logos') || '{}'); } catch { return {}; }
   });
@@ -85,6 +95,10 @@ export default function MaliyanPortal() {
     setLogos(updated);
     localStorage.setItem('maliyan_logos', JSON.stringify(updated));
   };
+
+  if (openPartner) {
+    return <PartnerPortal partner={openPartner} logo={logos[openPartner.id]} onBack={() => setOpenPartner(null)} />;
+  }
 
   return (
     <div className="space-y-6">
@@ -117,6 +131,7 @@ export default function MaliyanPortal() {
               logo={logos[partner.id]}
               onLogoUpload={handleLogoUpload}
               onLogoRemove={handleLogoRemove}
+              onOpen={() => setOpenPartner(partner)}
             />
           ))}
         </div>

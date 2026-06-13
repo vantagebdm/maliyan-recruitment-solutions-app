@@ -1,0 +1,124 @@
+{
+  "name": "PartnerHub",
+  "type": "object",
+  "properties": {
+    "partner_id": {
+      "type": "string"
+    },
+    "company_profile": {
+      "type": "object",
+      "properties": {
+        "tagline": {
+          "type": "string"
+        },
+        "overview": {
+          "type": "string"
+        },
+        "founded_year": {
+          "type": "string"
+        },
+        "headquarters": {
+          "type": "string"
+        },
+        "website": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        }
+      }
+    },
+    "business_details": {
+      "type": "object",
+      "properties": {
+        "abn": {
+          "type": "string"
+        },
+        "acn": {
+          "type": "string"
+        },
+        "legal_name": {
+          "type": "string"
+        },
+        "trading_name": {
+          "type": "string"
+        },
+        "business_type": {
+          "type": "string"
+        },
+        "industry": {
+          "type": "string"
+        },
+        "registered_address": {
+          "type": "string"
+        },
+        "payment_terms": {
+          "type": "string"
+        }
+      }
+    },
+    "company_structure": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "department": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "file_url": {
+            "type": "string"
+          },
+          "uploaded_date": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "hub_url": {
+      "type": "string",
+      "description": "Link to business-specific hub e.g. STS Service Hub"
+    },
+    "hub_label": {
+      "type": "string",
+      "description": "Label for the hub button e.g. STS Service Hub"
+    }
+  },
+  "required": [
+    "partner_id"
+  ]
+}
