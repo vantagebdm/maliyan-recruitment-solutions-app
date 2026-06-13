@@ -28,6 +28,7 @@ import Reports from '@/pages/Reports';
 import AIAssistant from '@/pages/AIAssistant';
 import Settings from '@/pages/Settings';
 import Brainstorm from '@/pages/Brainstorm';
+import MaliyanPortal from '@/pages/MaliyanPortal';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -74,6 +75,7 @@ const AuthenticatedApp = () => {
           <Route path="/ai-assistant" element={<AIAssistant />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/brainstorm" element={<Brainstorm />} />
+          <Route path="/clients/maliyan" element={<MaliyanPortal />} />
         </Route>
       </Route>
 

@@ -8,9 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Search, Building2, Phone, Mail, MapPin } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import StatusBadge from '../components/shared/StatusBadge';
 
 export default function Clients() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -75,7 +77,7 @@ export default function Clients() {
       {/* Featured Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {/* Maliyan Industry Partners */}
-        <div className="col-span-2 sm:col-span-3 lg:col-span-2 bg-gradient-to-br from-primary to-primary/80 rounded-xl p-5 text-primary-foreground flex flex-col justify-between min-h-[110px] shadow-md">
+        <div onClick={() => navigate('/clients/maliyan')} className="col-span-2 sm:col-span-3 lg:col-span-2 bg-gradient-to-br from-primary to-primary/80 rounded-xl p-5 text-primary-foreground flex flex-col justify-between min-h-[110px] shadow-md cursor-pointer hover:opacity-90 transition-opacity">
           <div className="flex items-center gap-2 mb-2">
             <Building2 className="w-5 h-5 opacity-80" />
             <span className="text-xs font-semibold uppercase tracking-widest opacity-70">Partner</span>
