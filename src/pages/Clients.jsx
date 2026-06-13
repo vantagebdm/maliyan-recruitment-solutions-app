@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Building2, Phone, Mail } from 'lucide-react';
+import { Plus, Search, Building2, Phone, Mail, MapPin } from 'lucide-react';
 import StatusBadge from '../components/shared/StatusBadge';
 
 export default function Clients() {
@@ -70,6 +70,55 @@ export default function Clients() {
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input placeholder="Search clients..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+      </div>
+
+      {/* Featured Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        {/* Maliyan Industry Partners */}
+        <div className="col-span-2 sm:col-span-3 lg:col-span-2 bg-gradient-to-br from-primary to-primary/80 rounded-xl p-5 text-primary-foreground flex flex-col justify-between min-h-[110px] shadow-md">
+          <div className="flex items-center gap-2 mb-2">
+            <Building2 className="w-5 h-5 opacity-80" />
+            <span className="text-xs font-semibold uppercase tracking-widest opacity-70">Partner</span>
+          </div>
+          <div>
+            <h3 className="font-bold text-lg leading-tight">Maliyan Industry Partners</h3>
+            <p className="text-xs opacity-70 mt-1">Strategic Industry Partner</p>
+          </div>
+        </div>
+
+        {/* State Cards */}
+        {[
+          { state: 'NSW', name: 'New South Wales', color: 'from-blue-600 to-blue-700' },
+          { state: 'WA', name: 'Western Australia', color: 'from-amber-500 to-amber-600' },
+          { state: 'SA', name: 'South Australia', color: 'from-red-600 to-red-700' },
+          { state: 'NT', name: 'Northern Territory', color: 'from-orange-500 to-orange-600' },
+          { state: 'QLD', name: 'Queensland', color: 'from-purple-600 to-purple-700' },
+          { state: 'VIC', name: 'Victoria', color: 'from-teal-600 to-teal-700' },
+          { state: 'TAS', name: 'Tasmania', color: 'from-emerald-600 to-emerald-700' },
+          { state: 'ACT', name: 'Australian Capital Territory', color: 'from-slate-600 to-slate-700' },
+        ].map(({ state, name, color }) => {
+          const count = clients.filter(c => c.site_locations?.some(s => s.includes(state)) || c.billing_address?.includes(state)).length;
+          return (
+            <div key={state} className={`bg-gradient-to-br ${color} rounded-xl p-4 text-white flex flex-col justify-between min-h-[100px] shadow-sm`}>
+              <div className="flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 opacity-70" />
+                <span className="text-xs opacity-70 font-medium">State</span>
+              </div>
+              <div>
+                <p className="text-2xl font-black tracking-tight">{state}</p>
+                <p className="text-[10px] opacity-60 leading-tight mt-0.5">{name}</p>
+                {count > 0 && <p className="text-xs font-semibold mt-1 opacity-90">{count} client{count !== 1 ? 's' : ''}</p>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Divider */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-px bg-border" />
+        <span className="text-xs text-muted-foreground font-medium">All Clients</span>
+        <div className="flex-1 h-px bg-border" />
       </div>
 
       {isLoading ? (
