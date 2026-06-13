@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Building2, User, Wrench, FileText, BarChart2, ExternalLink, Plus, Trash2, Upload, Save, X } from 'lucide-react';
+import OrgChart from '@/components/maliyan/OrgChart';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -69,14 +70,6 @@ export default function PartnerPortal({ partner, logo, onBack }) {
 
   const setProfile = (key, val) => setData(d => ({ ...d, company_profile: { ...d.company_profile, [key]: val } }));
   const setDetails = (key, val) => setData(d => ({ ...d, business_details: { ...d.business_details, [key]: val } }));
-
-  const addStructurePerson = () => setData(d => ({ ...d, company_structure: [...(d.company_structure || []), { name: '', role: '', department: '', email: '', phone: '' }] }));
-  const updateStructure = (i, key, val) => setData(d => {
-    const arr = [...(d.company_structure || [])];
-    arr[i] = { ...arr[i], [key]: val };
-    return { ...d, company_structure: arr };
-  });
-  const removeStructure = (i) => setData(d => ({ ...d, company_structure: d.company_structure.filter((_, idx) => idx !== i) }));
 
   const addCapability = () => setData(d => ({ ...d, capabilities: [...(d.capabilities || []), ''] }));
   const updateCapability = (i, val) => setData(d => { const arr = [...(d.capabilities || [])]; arr[i] = val; return { ...d, capabilities: arr }; });
@@ -171,23 +164,13 @@ export default function PartnerPortal({ partner, logo, onBack }) {
         )}
 
         {activeTab === 'structure' && (
-          <SectionCard title="Company Structure">
-            <div className="space-y-4">
-              {(data.company_structure || []).map((person, i) => (
-                <div key={i} className="border border-border rounded-lg p-4 space-y-3 relative">
-                  <button onClick={() => removeStructure(i)} className="absolute top-3 right-3 text-muted-foreground hover:text-destructive"><X className="w-4 h-4" /></button>
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    <Field label="Name" value={person.name} onChange={v => updateStructure(i, 'name', v)} />
-                    <Field label="Role / Title" value={person.role} onChange={v => updateStructure(i, 'role', v)} />
-                    <Field label="Department" value={person.department} onChange={v => updateStructure(i, 'department', v)} />
-                    <Field label="Email" value={person.email} onChange={v => updateStructure(i, 'email', v)} />
-                    <Field label="Phone" value={person.phone} onChange={v => updateStructure(i, 'phone', v)} />
-                  </div>
-                </div>
-              ))}
-              <Button variant="outline" size="sm" onClick={addStructurePerson} className="gap-2"><Plus className="w-4 h-4" />Add Person</Button>
-            </div>
-          </SectionCard>
+          <div className="bg-card border border-border rounded-xl p-6 space-y-2">
+            <h3 className="font-bold text-sm text-foreground mb-4">Company Structure — Org Chart</h3>
+            <OrgChart
+              nodes={data.company_structure || []}
+              onChange={nodes => setData(d => ({ ...d, company_structure: nodes }))}
+            />
+          </div>
         )}
 
         {activeTab === 'capabilities' && (
