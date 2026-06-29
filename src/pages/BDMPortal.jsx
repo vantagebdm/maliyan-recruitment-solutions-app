@@ -4,11 +4,13 @@ import { base44 } from '@/api/base44Client';
 import { ClipboardCheck, Star, Search, TrendingUp, CheckCircle2 } from 'lucide-react';
 import { POLICY_CATEGORIES, PRIORITY_POLICIES, getAllPolicies, policyKey, isPriority } from '@/components/bdm/policyData';
 import PolicyCategory from '@/components/bdm/PolicyCategory';
+import PolicyItemPanel from '@/components/bdm/PolicyItemPanel';
 
 export default function BDMPortal() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all'); // all | priority | incomplete
+  const [manageItem, setManageItem] = useState(null); // { category, policy }
 
   // Fetch tracker record
   const { data: tracker, isLoading } = useQuery({
@@ -69,6 +71,26 @@ export default function BDMPortal() {
 
   const handleToggle = (category, policy) => {
     if (tracker) toggleMutation.mutate({ category, policy });
+  };
+
+  const updateEntryMutation = useMutation({
+    mutationFn: async ({ category, policy, updatedEntry }) => {
+      const key = policyKey(category, policy);
+      const updatedPolicies = { ...checkedMap, [key]: { ...checkedMap[key], ...updatedEntry } };
+      const result = await base44.entities.PolicyTracker.update(tracker.id, { policies: updatedPolicies });
+      return result;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['policyTracker'] }),
+  });
+
+  const handleManage = (category, policy) => {
+    setManageItem({ category, policy });
+  };
+
+  const handlePanelUpdate = (updatedEntry) => {
+    if (manageItem && tracker) {
+      updateEntryMutation.mutate({ category: manageItem.category, policy: manageItem.policy, updatedEntry });
+    }
   };
 
   if (isLoading) {
@@ -199,6 +221,7 @@ export default function BDMPortal() {
             policies={cat.policies}
             checkedMap={checkedMap}
             onToggle={handleToggle}
+            onManage={handleManage}
           />
         ))}
         {filteredCategories.length === 0 && (
@@ -208,6 +231,17 @@ export default function BDMPortal() {
           </div>
         )}
       </div>
+
+      {/* Policy item management panel */}
+      {manageItem && (
+        <PolicyItemPanel
+          category={manageItem.category}
+          policy={manageItem.policy}
+          entry={checkedMap[policyKey(manageItem.category, manageItem.policy)] || { checked: true }}
+          onUpdate={handlePanelUpdate}
+          onClose={() => setManageItem(null)}
+        />
+      )}
     </div>
   );
 }

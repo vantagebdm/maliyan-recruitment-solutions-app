@@ -4,7 +4,7 @@
   "properties": {
     "policies": {
       "type": "object",
-      "description": "Map of 'category::policyName' to { checked, checked_by_name, checked_date }",
+      "description": "Map of 'category::policyName' to { checked, checked_by_name, checked_date, document_url, document_name, approval_status, comments: [{author_name, text, date, system}] }",
       "additionalProperties": true
     },
     "notes": {

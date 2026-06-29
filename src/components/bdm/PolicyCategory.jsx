@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Star } from 'lucide-react';
+import { ChevronDown, ChevronRight, Star, FileText, Clock, CheckCircle2, Settings2 } from 'lucide-react';
 import { isPriority } from './policyData';
 
-export default function PolicyCategory({ category, color, policies, checkedMap, onToggle }) {
+const APPROVAL_BADGE = {
+  draft: { label: 'Draft', icon: FileText, cls: 'text-muted-foreground bg-muted' },
+  in_review: { label: 'Review', icon: Clock, cls: 'text-amber-600 bg-amber-500/10' },
+  approved: { label: 'Approved', icon: CheckCircle2, cls: 'text-emerald-600 bg-emerald-500/10' },
+};
+
+export default function PolicyCategory({ category, color, policies, checkedMap, onToggle, onManage }) {
   const [expanded, setExpanded] = useState(true);
 
   const checkedCount = policies.filter((p) => checkedMap[`${category}::${p}`]?.checked).length;
@@ -42,15 +48,15 @@ export default function PolicyCategory({ category, color, policies, checkedMap, 
             const isChecked = !!entry?.checked;
             const priority = isPriority(policy);
             return (
-              <label
+              <div
                 key={key}
-                className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/30 transition-colors group"
+                className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/30 transition-colors group"
               >
                 <input
                   type="checkbox"
                   checked={isChecked}
                   onChange={() => onToggle(category, policy)}
-                  className="w-4 h-4 rounded border-border accent-primary flex-shrink-0"
+                  className="w-4 h-4 rounded border-border accent-primary flex-shrink-0 cursor-pointer"
                 />
                 <span className={`text-sm flex-1 ${isChecked ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                   {policy}
@@ -60,12 +66,25 @@ export default function PolicyCategory({ category, color, policies, checkedMap, 
                     <Star className="w-2.5 h-2.5 fill-accent" /> Priority
                   </span>
                 )}
-                {isChecked && entry?.checked_by_name && (
-                  <span className="text-[10px] text-muted-foreground hidden sm:inline">
-                    {entry.checked_by_name}
+                {isChecked && entry?.approval_status && entry.approval_status !== 'draft' && APPROVAL_BADGE[entry.approval_status] && (
+                  <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${APPROVAL_BADGE[entry.approval_status].cls}`}>
+                    {React.createElement(APPROVAL_BADGE[entry.approval_status].icon, { className: 'w-2.5 h-2.5' })}
+                    {APPROVAL_BADGE[entry.approval_status].label}
                   </span>
                 )}
-              </label>
+                {isChecked && entry?.document_url && (
+                  <FileText className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                )}
+                {isChecked && (
+                  <button
+                    onClick={() => onManage(category, policy)}
+                    className="p-1 rounded-md hover:bg-accent hover:text-accent-foreground text-muted-foreground transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
+                    title="Manage document & approval"
+                  >
+                    <Settings2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             );
           })}
         </div>
