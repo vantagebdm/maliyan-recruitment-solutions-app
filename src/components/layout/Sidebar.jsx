@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Briefcase, Users, Building2, ClipboardList,
   ShieldCheck, Truck, Clock, DollarSign, Receipt, BarChart3,
-  MessageSquare, Settings, ChevronLeft, ChevronRight, HardHat, Bot
+  MessageSquare, Settings, ChevronLeft, ChevronRight, HardHat, Bot, ClipboardCheck
 } from 'lucide-react';
 
 const navItems = [
@@ -22,6 +22,7 @@ const navItems = [
   { label: 'AI Assistant', icon: Bot, path: '/ai-assistant' },
   { label: 'Settings', icon: Settings, path: '/settings' },
   { label: 'Brainstorm', icon: MessageSquare, path: '/brainstorm' },
+  { label: 'BDM Portal', icon: ClipboardCheck, path: '/bdm-portal' },
 ];
 
 export default function Sidebar() {

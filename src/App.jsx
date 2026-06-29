@@ -29,6 +29,7 @@ import AIAssistant from '@/pages/AIAssistant';
 import Settings from '@/pages/Settings';
 import Brainstorm from '@/pages/Brainstorm';
 import MaliyanPortal from '@/pages/MaliyanPortal';
+import BDMPortal from '@/pages/BDMPortal';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -76,6 +77,7 @@ const AuthenticatedApp = () => {
           <Route path="/settings" element={<Settings />} />
           <Route path="/brainstorm" element={<Brainstorm />} />
           <Route path="/clients/maliyan" element={<MaliyanPortal />} />
+          <Route path="/bdm-portal" element={<BDMPortal />} />
         </Route>
       </Route>
 

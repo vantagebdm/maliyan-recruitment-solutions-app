@@ -1,0 +1,14 @@
+{
+  "name": "PolicyTracker",
+  "type": "object",
+  "properties": {
+    "policies": {
+      "type": "object",
+      "description": "Map of 'category::policyName' to { checked, checked_by_name, checked_date }",
+      "additionalProperties": true
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}
