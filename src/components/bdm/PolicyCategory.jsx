@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Star, FileText, Clock, CheckCircle2, Settings2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Star, FileText, Clock, CheckCircle2, Settings2, Upload, ClipboardCheck } from 'lucide-react';
 import { isPriority } from './policyData';
 
 const APPROVAL_BADGE = {
-  draft: { label: 'Draft', icon: FileText, cls: 'text-muted-foreground bg-muted' },
-  in_review: { label: 'Review', icon: Clock, cls: 'text-amber-600 bg-amber-500/10' },
+  uploaded: { label: 'Uploaded', icon: Upload, cls: 'text-blue-600 bg-blue-500/10' },
+  assessed: { label: 'Assessed', icon: ClipboardCheck, cls: 'text-amber-600 bg-amber-500/10' },
   approved: { label: 'Approved', icon: CheckCircle2, cls: 'text-emerald-600 bg-emerald-500/10' },
 };
 
@@ -66,7 +66,7 @@ export default function PolicyCategory({ category, color, policies, checkedMap, 
                     <Star className="w-2.5 h-2.5 fill-accent" /> Priority
                   </span>
                 )}
-                {isChecked && entry?.approval_status && entry.approval_status !== 'draft' && APPROVAL_BADGE[entry.approval_status] && (
+                {isChecked && entry?.approval_status && APPROVAL_BADGE[entry.approval_status] && (
                   <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${APPROVAL_BADGE[entry.approval_status].cls}`}>
                     {React.createElement(APPROVAL_BADGE[entry.approval_status].icon, { className: 'w-2.5 h-2.5' })}
                     {APPROVAL_BADGE[entry.approval_status].label}

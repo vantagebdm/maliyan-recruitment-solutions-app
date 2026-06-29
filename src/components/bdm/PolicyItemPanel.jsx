@@ -1,22 +1,29 @@
 import React, { useState } from 'react';
-import { X, Upload, FileText, CheckCircle2, Clock, FileCheck, Send, ExternalLink, Trash2 } from 'lucide-react';
+import { X, Upload, FileCheck, ClipboardCheck, CheckCircle2, ExternalLink, Trash2, Send, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
-const APPROVAL_STAGES = [
-  { key: 'draft', label: 'Draft', icon: FileText, color: 'text-muted-foreground bg-muted' },
-  { key: 'in_review', label: 'In Review', icon: Clock, color: 'text-amber-600 bg-amber-500/10' },
-  { key: 'approved', label: 'Approved', icon: CheckCircle2, color: 'text-emerald-600 bg-emerald-500/10' },
+const STAGES = [
+  { key: 'not_started', label: 'Not Started' },
+  { key: 'uploaded', label: 'Uploaded' },
+  { key: 'assessed', label: 'Assessed' },
+  { key: 'approved', label: 'Approved' },
 ];
+
+const STAGE_BADGE = {
+  not_started: { label: 'Not Started', cls: 'text-muted-foreground bg-muted' },
+  uploaded: { label: 'Uploaded', cls: 'text-blue-600 bg-blue-500/10' },
+  assessed: { label: 'Assessed', cls: 'text-amber-600 bg-amber-500/10' },
+  approved: { label: 'Approved', cls: 'text-emerald-600 bg-emerald-500/10' },
+};
 
 export default function PolicyItemPanel({ category, policy, entry, onUpdate, onClose }) {
   const [uploading, setUploading] = useState(false);
   const [comment, setComment] = useState('');
-  const [saving, setSaving] = useState(false);
 
   const documentUrl = entry?.document_url || null;
   const documentName = entry?.document_name || null;
-  const approvalStatus = entry?.approval_status || 'draft';
+  const stage = entry?.approval_status || 'not_started';
   const comments = entry?.comments || [];
 
   const handleUpload = async (e) => {
@@ -31,10 +38,10 @@ export default function PolicyItemPanel({ category, policy, entry, onUpdate, onC
         ...entry,
         document_url: file_url,
         document_name: file.name,
-        approval_status: entry?.approval_status === 'approved' ? 'approved' : 'draft',
+        approval_status: 'uploaded',
         comments: [
           ...(entry?.comments || []),
-          { author_name: user?.full_name || 'Unknown', text: `Uploaded document: ${file.name}`, date: new Date().toISOString(), system: true },
+          { author_name: user?.full_name || 'Unknown', text: `Uploaded v1 document: ${file.name}`, date: new Date().toISOString(), system: true },
         ],
       });
     } finally {
@@ -42,8 +49,22 @@ export default function PolicyItemPanel({ category, policy, entry, onUpdate, onC
     }
   };
 
-  const handleStatusChange = (newStatus) => {
-    onUpdate({ ...entry, approval_status: newStatus });
+  const handleAssess = () => {
+    const user = 'You';
+    onUpdate({
+      ...entry,
+      approval_status: 'assessed',
+      comments: [...comments, { author_name: user, text: 'Document assessed — ready for approval.', date: new Date().toISOString(), system: true }],
+    });
+  };
+
+  const handleApprove = () => {
+    const user = 'You';
+    onUpdate({
+      ...entry,
+      approval_status: 'approved',
+      comments: [...comments, { author_name: user, text: 'Policy approved. v1 document locked.', date: new Date().toISOString(), system: true }],
+    });
   };
 
   const handleAddComment = () => {
@@ -57,10 +78,11 @@ export default function PolicyItemPanel({ category, policy, entry, onUpdate, onC
   };
 
   const handleRemoveDocument = () => {
-    onUpdate({ ...entry, document_url: null, document_name: null, approval_status: 'draft' });
+    onUpdate({ ...entry, document_url: null, document_name: null, approval_status: 'not_started' });
   };
 
-  const stageIdx = APPROVAL_STAGES.findIndex((s) => s.key === approvalStatus);
+  const stageIdx = STAGES.findIndex((s) => s.key === stage);
+  const badge = STAGE_BADGE[stage] || STAGE_BADGE.not_started;
 
   return (
     <>
@@ -71,6 +93,9 @@ export default function PolicyItemPanel({ category, policy, entry, onUpdate, onC
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{category}</p>
             <h2 className="font-bold text-base leading-tight mt-0.5">{policy}</h2>
+            <span className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full mt-1.5 ${badge.cls}`}>
+              {badge.label}
+            </span>
           </div>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-muted transition-colors flex-shrink-0">
             <X className="w-4 h-4" />
@@ -78,37 +103,26 @@ export default function PolicyItemPanel({ category, policy, entry, onUpdate, onC
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-6">
-          {/* Approval workflow */}
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3">Approval Status</h3>
-            <div className="flex items-center gap-1">
-              {APPROVAL_STAGES.map((stage, i) => {
-                const isActive = i <= stageIdx;
-                const isCurrent = stage.key === approvalStatus;
-                const Icon = stage.icon;
-                return (
-                  <React.Fragment key={stage.key}>
-                    <button
-                      onClick={() => handleStatusChange(stage.key)}
-                      className={`flex flex-col items-center gap-1 px-2 py-1.5 rounded-lg transition-all flex-1 ${isCurrent ? 'ring-2 ring-primary ring-offset-1' : ''}`}
-                    >
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isActive ? stage.color : 'bg-muted text-muted-foreground/40'}`}>
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <span className={`text-[10px] font-semibold ${isActive ? 'text-foreground' : 'text-muted-foreground/50'}`}>{stage.label}</span>
-                    </button>
-                    {i < APPROVAL_STAGES.length - 1 && (
-                      <div className={`h-0.5 flex-1 rounded-full ${i < stageIdx ? 'bg-emerald-500' : 'bg-muted'}`} />
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </div>
+          {/* Progress tracker */}
+          <div className="flex items-center gap-1">
+            {STAGES.map((s, i) => {
+              const done = i < stageIdx;
+              const current = i === stageIdx;
+              return (
+                <React.Fragment key={s.key}>
+                  <div className="flex flex-col items-center gap-1 flex-1">
+                    <div className={`w-3 h-3 rounded-full transition-colors ${done || current ? 'bg-primary' : 'bg-muted'}`} />
+                    <span className={`text-[9px] font-semibold leading-tight text-center ${done || current ? 'text-foreground' : 'text-muted-foreground/50'}`}>{s.label}</span>
+                  </div>
+                  {i < STAGES.length - 1 && <div className={`h-0.5 flex-1 rounded-full ${done ? 'bg-primary' : 'bg-muted'}`} />}
+                </React.Fragment>
+              );
+            })}
           </div>
 
           {/* Document */}
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3">Document</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3">v1 Document</h3>
             {documentUrl ? (
               <div className="border border-border rounded-xl p-4 space-y-3">
                 <div className="flex items-center gap-3">
@@ -117,13 +131,13 @@ export default function PolicyItemPanel({ category, policy, entry, onUpdate, onC
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{documentName}</p>
-                    <p className="text-xs text-muted-foreground">Draft uploaded</p>
+                    <p className="text-xs text-muted-foreground">v1 stored</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <a href={documentUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
                     <Button variant="outline" size="sm" className="w-full gap-2">
-                      <ExternalLink className="w-3.5 h-3.5" /> View Document
+                      <ExternalLink className="w-3.5 h-3.5" /> View
                     </Button>
                   </a>
                   <label className="cursor-pointer">
@@ -145,12 +159,49 @@ export default function PolicyItemPanel({ category, policy, entry, onUpdate, onC
                   <Upload className="w-8 h-8 text-muted-foreground" />
                 )}
                 <span className="text-sm font-medium text-muted-foreground">
-                  {uploading ? 'Uploading...' : 'Upload draft document'}
+                  {uploading ? 'Uploading...' : 'Upload v1 document'}
                 </span>
                 <span className="text-xs text-muted-foreground/70">PDF, DOCX, or image files</span>
                 <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" />
               </label>
             )}
+          </div>
+
+          {/* Action buttons */}
+          <div className="space-y-2">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Actions</h3>
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                variant={stage === 'uploaded' ? 'default' : 'outline'}
+                size="sm"
+                className="gap-1.5"
+                disabled={!documentUrl || stageIdx >= 1}
+                onClick={() => onUpdate({ ...entry, approval_status: 'uploaded' })}
+              >
+                <Upload className="w-3.5 h-3.5" /> Upload
+              </Button>
+              <Button
+                variant={stage === 'assessed' ? 'default' : 'outline'}
+                size="sm"
+                className="gap-1.5"
+                disabled={!documentUrl || stageIdx >= 2}
+                onClick={handleAssess}
+              >
+                <ClipboardCheck className="w-3.5 h-3.5" /> Assess
+              </Button>
+              <Button
+                variant={stage === 'approved' ? 'default' : 'outline'}
+                size="sm"
+                className="gap-1.5"
+                disabled={stage !== 'assessed'}
+                onClick={handleApprove}
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" /> Approve
+              </Button>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Files are stored as v1 documents. Workflows will be built once the full section is complete.
+            </p>
           </div>
 
           {/* Comments */}
