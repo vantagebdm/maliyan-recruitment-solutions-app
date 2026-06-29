@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Star, FileText, Clock, CheckCircle2, Settings2, Upload, ClipboardCheck } from 'lucide-react';
+import { ChevronDown, ChevronRight, Star, FileText, Clock, CheckCircle2, Upload, ClipboardCheck, FileCheck } from 'lucide-react';
 import { isPriority } from './policyData';
 
 const APPROVAL_BADGE = {
@@ -66,24 +66,25 @@ export default function PolicyCategory({ category, color, policies, checkedMap, 
                     <Star className="w-2.5 h-2.5 fill-accent" /> Priority
                   </span>
                 )}
-                {isChecked && entry?.approval_status && APPROVAL_BADGE[entry.approval_status] && (
-                  <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${APPROVAL_BADGE[entry.approval_status].cls}`}>
-                    {React.createElement(APPROVAL_BADGE[entry.approval_status].icon, { className: 'w-2.5 h-2.5' })}
-                    {APPROVAL_BADGE[entry.approval_status].label}
-                  </span>
-                )}
-                {isChecked && entry?.document_url && (
-                  <FileText className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-                )}
-                {isChecked && (
-                  <button
-                    onClick={() => onManage(category, policy)}
-                    className="p-1 rounded-md hover:bg-accent hover:text-accent-foreground text-muted-foreground transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
-                    title="Manage document & approval"
-                  >
-                    <Settings2 className="w-4 h-4" />
-                  </button>
-                )}
+                {/* Status badge */}
+                <button
+                  onClick={() => onManage(category, policy)}
+                  className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full transition-opacity ${entry?.approval_status && APPROVAL_BADGE[entry.approval_status] ? APPROVAL_BADGE[entry.approval_status].cls : 'text-muted-foreground bg-muted'} hover:opacity-80 flex-shrink-0`}
+                  title="View / update status"
+                >
+                  {entry?.approval_status && APPROVAL_BADGE[entry.approval_status]
+                    ? <>{React.createElement(APPROVAL_BADGE[entry.approval_status].icon, { className: 'w-2.5 h-2.5' })}{APPROVAL_BADGE[entry.approval_status].label}</>
+                    : <><FileText className="w-2.5 h-2.5" />No Status</>}
+                </button>
+                {/* Evidence button */}
+                <button
+                  onClick={() => onManage(category, policy)}
+                  className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full transition-colors flex-shrink-0 ${entry?.document_url ? 'text-primary bg-primary/10' : 'text-muted-foreground bg-muted'} hover:opacity-80`}
+                  title="View / upload evidence"
+                >
+                  {entry?.document_url ? <FileCheck className="w-2.5 h-2.5" /> : <Upload className="w-2.5 h-2.5" />}
+                  Evidence
+                </button>
               </div>
             );
           })}
