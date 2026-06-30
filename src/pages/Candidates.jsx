@@ -73,6 +73,7 @@ export default function Candidates() {
           <SelectContent>
             <SelectItem value="all">All Stages</SelectItem>
             <SelectItem value="available">Available</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
             <SelectItem value="applied">Applied</SelectItem>
             <SelectItem value="mobilising">Mobilising</SelectItem>
             <SelectItem value="demobbed">Demobbed</SelectItem>

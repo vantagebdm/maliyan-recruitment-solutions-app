@@ -54,6 +54,7 @@ const statusStyles = {
   inactive: 'bg-red-100 text-red-700 border-red-200',
   // Candidate stage (lifecycle)
   available: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  active: 'bg-green-100 text-green-800 border-green-200',
   applied: 'bg-blue-100 text-blue-700 border-blue-200',
   demobbed: 'bg-slate-100 text-slate-700 border-slate-200',
   archived: 'bg-gray-100 text-gray-600 border-gray-200',

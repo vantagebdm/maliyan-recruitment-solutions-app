@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 const states = ['QLD', 'NSW', 'VIC', 'WA', 'SA', 'TAS', 'NT', 'ACT'];
 const candidateStages = [
   { value: 'available', label: 'Available' },
+  { value: 'active', label: 'Active' },
   { value: 'applied', label: 'Applied' },
   { value: 'mobilising', label: 'Mobilising' },
   { value: 'demobbed', label: 'Demobbed' },

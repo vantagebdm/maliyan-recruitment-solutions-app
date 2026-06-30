@@ -17,6 +17,7 @@ import ActivitiesSection from '@/components/candidate-card/ActivitiesSection';
 
 const STAGE_CONFIG = {
   available: { label: 'Available', cls: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30' },
+  active: { label: 'Active', cls: 'bg-green-500/10 text-green-700 border-green-500/30' },
   applied: { label: 'Applied', cls: 'bg-blue-500/10 text-blue-600 border-blue-500/30' },
   mobilising: { label: 'Mobilising', cls: 'bg-amber-500/10 text-amber-600 border-amber-500/30' },
   demobbed: { label: 'Demobbed', cls: 'bg-slate-500/10 text-slate-600 border-slate-500/30' },

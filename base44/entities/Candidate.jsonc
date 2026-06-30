@@ -102,6 +102,7 @@
       "type": "string",
       "enum": [
         "available",
+        "active",
         "applied",
         "mobilising",
         "demobbed",
