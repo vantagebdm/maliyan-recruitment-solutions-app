@@ -98,6 +98,18 @@
       ],
       "default": "new_applicant"
     },
+    "candidate_stage": {
+      "type": "string",
+      "enum": [
+        "available",
+        "applied",
+        "mobilising",
+        "demobbed",
+        "inactive",
+        "archived"
+      ],
+      "default": "available"
+    },
     "compliance_status": {
       "type": "string",
       "enum": [
@@ -120,6 +132,180 @@
     "user_id": {
       "type": "string",
       "description": "Linked user account ID"
+    },
+    "candidate_id": {
+      "type": "string",
+      "description": "Display ID e.g. CND-02458"
+    },
+    "date_of_birth": {
+      "type": "string",
+      "format": "date"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "male",
+        "female",
+        "other",
+        "prefer_not_to_say"
+      ]
+    },
+    "address": {
+      "type": "string"
+    },
+    "home_phone": {
+      "type": "string"
+    },
+    "emergency_contact_name": {
+      "type": "string"
+    },
+    "emergency_contact_phone": {
+      "type": "string"
+    },
+    "emergency_contact_relationship": {
+      "type": "string"
+    },
+    "notice_period": {
+      "type": "string"
+    },
+    "willing_to_relocate": {
+      "type": "boolean",
+      "default": false
+    },
+    "home_airport": {
+      "type": "string"
+    },
+    "applied_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "recruiter_name": {
+      "type": "string"
+    },
+    "linkedin_url": {
+      "type": "string"
+    },
+    "facebook_url": {
+      "type": "string"
+    },
+    "comments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "interview",
+              "phone_call",
+              "sms_sent",
+              "did_not_answer",
+              "general",
+              "note"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "author_name": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "verifications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item": {
+            "type": "string"
+          },
+          "reference_number": {
+            "type": "string"
+          },
+          "expiry_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "date_verified": {
+            "type": "string",
+            "format": "date"
+          },
+          "verified_by": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "verified",
+              "pending",
+              "expired",
+              "not_required"
+            ],
+            "default": "pending"
+          }
+        }
+      }
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "file_name": {
+            "type": "string"
+          },
+          "file_url": {
+            "type": "string"
+          },
+          "uploaded_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "expiry_date": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    },
+    "activities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "phone_call",
+              "interview",
+              "sms",
+              "note",
+              "document_uploaded",
+              "verification_completed",
+              "stage_changed",
+              "email",
+              "meeting"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "by": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "required": [

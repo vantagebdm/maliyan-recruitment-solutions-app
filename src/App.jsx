@@ -30,6 +30,7 @@ import Settings from '@/pages/Settings';
 import Brainstorm from '@/pages/Brainstorm';
 import MaliyanPortal from '@/pages/MaliyanPortal';
 import BDMPortal from '@/pages/BDMPortal';
+import CandidateCard from '@/pages/CandidateCard';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -65,6 +66,7 @@ const AuthenticatedApp = () => {
           <Route path="/" element={<Dashboard />} />
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/candidates" element={<Candidates />} />
+          <Route path="/candidates/:id" element={<CandidateCard />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/job-orders" element={<JobOrders />} />
           <Route path="/compliance" element={<Compliance />} />
