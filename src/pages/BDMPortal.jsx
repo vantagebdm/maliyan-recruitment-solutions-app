@@ -25,6 +25,10 @@ export default function BDMPortal() {
   });
 
   const checkedMap = tracker?.policies || {};
+  const storedPriorities = tracker?.priority_policies;
+  const effectivePriorities = Array.isArray(storedPriorities) ? storedPriorities : PRIORITY_POLICIES;
+  const prioritySet = new Set(effectivePriorities);
+  const isPriorityCustom = (policy) => prioritySet.has(policy);
 
   const toggleMutation = useMutation({
     mutationFn: async ({ category, policy }) => {
@@ -48,10 +52,10 @@ export default function BDMPortal() {
   const totalPolicies = allPolicies.length;
   const overallPct = totalPolicies > 0 ? Math.round((totalChecked / totalPolicies) * 100) : 0;
 
-  const priorityChecked = PRIORITY_POLICIES.filter((p) => {
+  const priorityChecked = effectivePriorities.filter((p) => {
     return allPolicies.some((ap) => ap.policy === p && checkedMap[policyKey(ap.category, ap.policy)]?.checked);
   }).length;
-  const priorityPct = PRIORITY_POLICIES.length > 0 ? Math.round((priorityChecked / PRIORITY_POLICIES.length) * 100) : 0;
+  const priorityPct = effectivePriorities.length > 0 ? Math.round((priorityChecked / effectivePriorities.length) * 100) : 0;
 
   // Filtered categories
   const filteredCategories = useMemo(() => {
@@ -62,7 +66,7 @@ export default function BDMPortal() {
         if (q && !p.toLowerCase().includes(q) && !cat.name.toLowerCase().includes(q)) return false;
         const key = policyKey(cat.name, p);
         const isChecked = !!checkedMap[key]?.checked;
-        if (filter === 'priority' && !isPriority(p)) return false;
+        if (filter === 'priority' && !isPriorityCustom(p)) return false;
         if (filter === 'incomplete' && isChecked) return false;
         return true;
       }),
@@ -71,6 +75,22 @@ export default function BDMPortal() {
 
   const handleToggle = (category, policy) => {
     if (tracker) toggleMutation.mutate({ category, policy });
+  };
+
+  const togglePriorityMutation = useMutation({
+    mutationFn: async ({ policy }) => {
+      const current = Array.isArray(tracker.priority_policies) ? [...tracker.priority_policies] : [...PRIORITY_POLICIES];
+      const idx = current.indexOf(policy);
+      if (idx >= 0) current.splice(idx, 1);
+      else current.push(policy);
+      const result = await base44.entities.PolicyTracker.update(tracker.id, { priority_policies: current });
+      return result;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['policyTracker'] }),
+  });
+
+  const handleTogglePriority = (policy) => {
+    if (tracker) togglePriorityMutation.mutate({ policy });
   };
 
   const updateEntryMutation = useMutation({
@@ -141,7 +161,7 @@ export default function BDMPortal() {
             <Star className="w-6 h-6 text-accent fill-accent" />
           </div>
           <div>
-            <p className="text-2xl font-black">{priorityChecked}/{PRIORITY_POLICIES.length}</p>
+            <p className="text-2xl font-black">{priorityChecked}/{effectivePriorities.length}</p>
             <p className="text-xs text-muted-foreground">Priority Launch ({priorityPct}%)</p>
           </div>
         </div>
@@ -161,13 +181,13 @@ export default function BDMPortal() {
         <div className="flex items-center gap-2 mb-3">
           <Star className="w-5 h-5 text-accent fill-accent" />
           <h2 className="font-bold text-sm">Priority for Initial Launch</h2>
-          <span className="text-xs text-muted-foreground">— {priorityChecked} of {PRIORITY_POLICIES.length} complete</span>
+          <span className="text-xs text-muted-foreground">— {priorityChecked} of {effectivePriorities.length} complete</span>
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden mb-4">
           <div className="h-full bg-accent transition-all duration-500" style={{ width: `${priorityPct}%` }} />
         </div>
         <div className="flex flex-wrap gap-2">
-          {PRIORITY_POLICIES.map((p) => {
+          {effectivePriorities.map((p) => {
             const entry = allPolicies.find((ap) => ap.policy === p);
             const isChecked = entry ? !!checkedMap[policyKey(entry.category, entry.policy)]?.checked : false;
             return (
@@ -222,6 +242,8 @@ export default function BDMPortal() {
             checkedMap={checkedMap}
             onToggle={handleToggle}
             onManage={handleManage}
+            isPriority={isPriorityCustom}
+            onTogglePriority={handleTogglePriority}
           />
         ))}
         {filteredCategories.length === 0 && (

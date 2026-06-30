@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, Star, FileText, Clock, CheckCircle2, Upload, ClipboardCheck, FileCheck } from 'lucide-react';
-import { isPriority } from './policyData';
+
 
 const APPROVAL_BADGE = {
   uploaded: { label: 'Uploaded', icon: Upload, cls: 'text-blue-600 bg-blue-500/10' },
@@ -8,7 +8,7 @@ const APPROVAL_BADGE = {
   approved: { label: 'Approved', icon: CheckCircle2, cls: 'text-emerald-600 bg-emerald-500/10' },
 };
 
-export default function PolicyCategory({ category, color, policies, checkedMap, onToggle, onManage }) {
+export default function PolicyCategory({ category, color, policies, checkedMap, onToggle, onManage, isPriority, onTogglePriority }) {
   const [expanded, setExpanded] = useState(true);
 
   const checkedCount = policies.filter((p) => checkedMap[`${category}::${p}`]?.checked).length;
@@ -61,11 +61,13 @@ export default function PolicyCategory({ category, color, policies, checkedMap, 
                 <span className={`text-sm flex-1 ${isChecked ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                   {policy}
                 </span>
-                {priority && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-accent bg-accent/10 px-1.5 py-0.5 rounded-full">
-                    <Star className="w-2.5 h-2.5 fill-accent" /> Priority
-                  </span>
-                )}
+                <button
+                  onClick={(e) => { e.stopPropagation(); onTogglePriority(policy); }}
+                  className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full transition-colors ${priority ? 'text-accent bg-accent/10' : 'text-muted-foreground bg-muted opacity-0 group-hover:opacity-100'} hover:bg-accent/20`}
+                  title={priority ? 'Remove priority' : 'Mark as priority'}
+                >
+                  <Star className={`w-2.5 h-2.5 ${priority ? 'fill-accent' : ''}`} /> {priority ? 'Priority' : 'Set Priority'}
+                </button>
                 {/* Status badge */}
                 <button
                   onClick={() => onManage(category, policy)}

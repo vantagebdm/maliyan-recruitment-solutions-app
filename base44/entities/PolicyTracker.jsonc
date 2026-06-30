@@ -7,8 +7,16 @@
       "description": "Map of 'category::policyName' to { checked, checked_by_name, checked_date, document_url, document_name, approval_status, comments: [{author_name, text, date, system}] }",
       "additionalProperties": true
     },
+    "priority_policies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Policy names marked as priority by the user. If empty, defaults are used from policyData."
+    },
     "notes": {
       "type": "string"
     }
-  }
+  },
+  "required": []
 }
