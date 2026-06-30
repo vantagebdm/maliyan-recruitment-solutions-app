@@ -47,7 +47,7 @@ export default function Candidates() {
       `${c.first_name} ${c.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
       c.email?.toLowerCase().includes(search.toLowerCase()) ||
       c.trade?.toLowerCase().includes(search.toLowerCase());
-    const matchStage = stageFilter === 'all' || c.pipeline_stage === stageFilter;
+    const matchStage = stageFilter === 'all' || c.candidate_stage === stageFilter;
     return matchSearch && matchStage;
   });
 
@@ -72,15 +72,12 @@ export default function Candidates() {
           <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Stages</SelectItem>
-            <SelectItem value="new_applicant">New Applicant</SelectItem>
-            <SelectItem value="resume_review">Resume Review</SelectItem>
-            <SelectItem value="phone_screen">Phone Screen</SelectItem>
-            <SelectItem value="interview">Interview</SelectItem>
-            <SelectItem value="reference_check">Reference Check</SelectItem>
-            <SelectItem value="compliance_check">Compliance Check</SelectItem>
-            <SelectItem value="ready_for_placement">Ready for Placement</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="talent_pool">Talent Pool</SelectItem>
+            <SelectItem value="available">Available</SelectItem>
+            <SelectItem value="applied">Applied</SelectItem>
+            <SelectItem value="mobilising">Mobilising</SelectItem>
+            <SelectItem value="demobbed">Demobbed</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+            <SelectItem value="archived">Archived</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -113,7 +110,7 @@ export default function Candidates() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
                       <h3 className="font-semibold text-sm">{c.first_name} {c.last_name}</h3>
-                      <StatusBadge status={c.pipeline_stage} />
+                      <StatusBadge status={c.candidate_stage || 'available'} />
                       <TrafficLight status={c.compliance_status} />
                     </div>
                     <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
