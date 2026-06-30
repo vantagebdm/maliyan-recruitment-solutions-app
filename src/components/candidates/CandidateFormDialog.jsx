@@ -8,10 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 
 const states = ['QLD', 'NSW', 'VIC', 'WA', 'SA', 'TAS', 'NT', 'ACT'];
-const stages = [
-  'new_applicant', 'resume_review', 'phone_screen', 'interview', 'reference_check',
-  'compliance_check', 'medical_required', 'ready_for_placement', 'offered', 'accepted',
-  'mobilising', 'active', 'rejected', 'talent_pool'
+const candidateStages = [
+  { value: 'available', label: 'Available' },
+  { value: 'applied', label: 'Applied' },
+  { value: 'mobilising', label: 'Mobilising' },
+  { value: 'demobbed', label: 'Demobbed' },
+  { value: 'inactive', label: 'Inactive' },
+  { value: 'archived', label: 'Archived' },
 ];
 
 export default function CandidateFormDialog({ open, onOpenChange, candidate, onSave, isLoading }) {
@@ -21,7 +24,7 @@ export default function CandidateFormDialog({ open, onOpenChange, candidate, onS
     if (candidate) {
       setForm({ ...candidate });
     } else {
-      setForm({ pipeline_stage: 'new_applicant', compliance_status: 'pending', status: 'active', fifo_available: false });
+      setForm({ candidate_stage: 'available', pipeline_stage: 'new_applicant', compliance_status: 'pending', status: 'active', fifo_available: false });
     }
   }, [candidate, open]);
 
@@ -74,11 +77,11 @@ export default function CandidateFormDialog({ open, onOpenChange, candidate, onS
               </Select>
             </div>
             <div>
-              <Label>Pipeline Stage</Label>
-              <Select value={form.pipeline_stage || 'new_applicant'} onValueChange={v => update('pipeline_stage', v)}>
+              <Label>Candidate Stage</Label>
+              <Select value={form.candidate_stage || 'available'} onValueChange={v => update('candidate_stage', v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {stages.map(s => <SelectItem key={s} value={s}>{s.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</SelectItem>)}
+                  {candidateStages.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
