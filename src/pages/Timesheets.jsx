@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import ShiftReportCard from '@/components/timesheets/ShiftReportCard';
 import { Inbox, CheckCircle2, CheckCheck, FileDown, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { generatePayRunPdf } from '@/utils/payRunPdf';
 
 export default function Timesheets() {
   const queryClient = useQueryClient();
@@ -46,20 +47,7 @@ export default function Timesheets() {
     if (approved.length === 0) return;
     setGeneratingPdf(true);
     try {
-      const response = await base44.functions.invoke('generatePayRunPdf', {
-        timesheet_ids: approved.map(t => t.id)
-      });
-      const { filename, base64 } = response.data;
-      const binary = atob(base64);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      const blob = new Blob([bytes], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const a = window.document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(url);
+      generatePayRunPdf(approved);
     } finally {
       setGeneratingPdf(false);
     }
