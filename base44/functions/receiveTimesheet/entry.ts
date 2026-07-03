@@ -42,6 +42,31 @@ Deno.serve(async (req) => {
     // Use service role so the STS Hub can submit without a user session
     const timesheet = await base44.asServiceRole.entities.Timesheet.create(payload);
 
+    // Notify accounts team that a new shift report has been received
+    const recipient = 'accounts@maliyanpartners.com.au';
+    const subject = `New Shift Report — ${payload.candidate_name || payload.candidate_id} (Week ending ${payload.week_ending})`;
+    const emailBody = [
+      `A new shift report has been submitted via the STS Hub.`,
+      ``,
+      `Employee: ${payload.candidate_name || payload.candidate_id}`,
+      `Client: ${payload.client_name || '—'}`,
+      `Site: ${payload.site || '—'}`,
+      `Week Ending: ${payload.week_ending}`,
+      `Ordinary Hours: ${payload.total_ordinary_hours || 0}`,
+      `Overtime Hours: ${payload.total_overtime_hours || 0}`,
+      `Allowances: $${payload.total_allowances || 0}`,
+      `Status: ${payload.status}`,
+      ``,
+      `Review this report in the Timesheets page — Submitted Shift Reports section.`
+    ].join('\n');
+
+    try {
+      await base44.asServiceRole.integrations.Core.SendEmail({ to: recipient, subject, body: emailBody });
+    } catch (emailErr) {
+      // Don't fail the whole request if the email notification fails
+      console.error('Failed to send notification email:', emailErr.message);
+    }
+
     return Response.json({ status: 'received', id: timesheet.id }, { status: 201 });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
