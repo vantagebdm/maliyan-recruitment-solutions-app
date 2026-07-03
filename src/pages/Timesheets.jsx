@@ -104,17 +104,29 @@ export default function Timesheets() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(ts => (
-                <tr key={ts.id} onClick={() => openForm(ts)} className="border-b hover:bg-muted/30 cursor-pointer transition-colors">
-                  <td className="p-3 font-medium">{ts.candidate_name || 'Unknown'}</td>
-                  <td className="p-3">{ts.week_ending ? format(new Date(ts.week_ending), 'dd MMM yyyy') : '—'}</td>
-                  <td className="p-3">{ts.client_name || '—'}</td>
-                  <td className="p-3 text-right">{ts.total_ordinary_hours || 0}h</td>
-                  <td className="p-3 text-right">{ts.total_overtime_hours || 0}h</td>
-                  <td className="p-3 text-right">${ts.total_allowances || 0}</td>
-                  <td className="p-3"><StatusBadge status={ts.status} /></td>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-12 text-center">
+                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                      <Clock className="w-8 h-8 opacity-40" />
+                      <p className="text-sm font-medium">No timesheets received yet</p>
+                      <p className="text-xs">Timesheet entries submitted from the STS Hub will appear here.</p>
+                    </div>
+                  </td>
                 </tr>
-              ))}
+              ) : (
+                filtered.map(ts => (
+                  <tr key={ts.id} onClick={() => openForm(ts)} className="border-b hover:bg-muted/30 cursor-pointer transition-colors">
+                    <td className="p-3 font-medium">{ts.candidate_name || 'Unknown'}</td>
+                    <td className="p-3">{ts.week_ending ? format(new Date(ts.week_ending), 'dd MMM yyyy') : '—'}</td>
+                    <td className="p-3">{ts.client_name || '—'}</td>
+                    <td className="p-3 text-right">{ts.total_ordinary_hours || 0}h</td>
+                    <td className="p-3 text-right">{ts.total_overtime_hours || 0}h</td>
+                    <td className="p-3 text-right">${ts.total_allowances || 0}</td>
+                    <td className="p-3"><StatusBadge status={ts.status} /></td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

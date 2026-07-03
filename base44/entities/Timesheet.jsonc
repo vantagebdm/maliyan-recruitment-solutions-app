@@ -105,6 +105,11 @@
     },
     "rejection_reason": {
       "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "description": "Origin of the timesheet entry e.g. sts_hub, manual",
+      "default": "manual"
     }
   },
   "required": [
