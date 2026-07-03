@@ -3,14 +3,25 @@ import { Clock, FileText, CheckCircle2 } from 'lucide-react';
 import StatusBadge from '@/components/shared/StatusBadge';
 import { format } from 'date-fns';
 
-export default function ShiftReportCard({ report, onClick }) {
+export default function ShiftReportCard({ report, onClick, selectable, selected, onToggle }) {
   return (
     <div
+      className={`bg-card rounded-lg border p-4 transition-all ${
+        selected ? 'border-primary ring-1 ring-primary/30' : 'border-border hover:shadow-sm hover:border-primary/30'
+      } ${onClick ? 'cursor-pointer' : ''}`}
       onClick={onClick}
-      className="bg-card rounded-lg border border-border p-4 hover:shadow-sm hover:border-primary/30 cursor-pointer transition-all"
     >
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2 min-w-0">
+          {selectable && (
+            <input
+              type="checkbox"
+              checked={selected || false}
+              onChange={(e) => { e.stopPropagation(); onToggle?.(report.id); }}
+              className="w-4 h-4 rounded border-border accent-primary flex-shrink-0 mt-0.5"
+              onClick={(e) => e.stopPropagation()}
+            />
+          )}
           <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
             <FileText className="w-4 h-4 text-muted-foreground" />
           </div>

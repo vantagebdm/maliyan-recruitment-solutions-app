@@ -1,10 +1,16 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import ShiftReportCard from '@/components/timesheets/ShiftReportCard';
-import { Inbox, CheckCircle2 } from 'lucide-react';
+import { Inbox, CheckCircle2, CheckCheck, FileDown, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function Timesheets() {
+  const queryClient = useQueryClient();
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [approving, setApproving] = useState(false);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+
   const { data: timesheets = [], isLoading } = useQuery({
     queryKey: ['timesheets'],
     queryFn: () => base44.entities.Timesheet.list('-created_date'),
@@ -13,6 +19,51 @@ export default function Timesheets() {
 
   const submitted = timesheets.filter(t => t.status === 'submitted' || t.status === 'draft');
   const approved = timesheets.filter(t => ['client_approved', 'admin_approved', 'payroll_ready', 'paid'].includes(t.status));
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+  const selectAll = () => {
+    if (selectedIds.length === submitted.length) setSelectedIds([]);
+    else setSelectedIds(submitted.map(t => t.id));
+  };
+
+  const handleBulkApprove = async () => {
+    if (selectedIds.length === 0) return;
+    setApproving(true);
+    try {
+      await base44.entities.Timesheet.bulkUpdate(
+        selectedIds.map(id => ({ id, status: 'admin_approved', admin_approval: true }))
+      );
+      setSelectedIds([]);
+      queryClient.invalidateQueries({ queryKey: ['timesheets'] });
+    } finally {
+      setApproving(false);
+    }
+  };
+
+  const handleGeneratePdf = async () => {
+    if (approved.length === 0) return;
+    setGeneratingPdf(true);
+    try {
+      const response = await base44.functions.invoke('generatePayRunPdf', {
+        timesheet_ids: approved.map(t => t.id)
+      });
+      const { filename, base64 } = response.data;
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = window.document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -37,6 +88,28 @@ export default function Timesheets() {
             <span className="text-xs font-medium px-2 py-1 rounded-full bg-primary/10 text-primary">{submitted.length}</span>
           </div>
 
+          {submitted.length > 0 && (
+            <div className="flex items-center justify-between gap-2 mb-3 pb-3 border-b border-border">
+              <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.length === submitted.length && submitted.length > 0}
+                  onChange={selectAll}
+                  className="w-4 h-4 rounded border-border accent-primary"
+                />
+                Select all ({selectedIds.length}/{submitted.length})
+              </label>
+              <Button
+                size="sm"
+                onClick={handleBulkApprove}
+                disabled={selectedIds.length === 0 || approving}
+              >
+                {approving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCheck className="w-4 h-4" />}
+                Approve ({selectedIds.length})
+              </Button>
+            </div>
+          )}
+
           <div className="space-y-3 flex-1 overflow-y-auto">
             {isLoading ? (
               <div className="flex justify-center py-12">
@@ -49,7 +122,15 @@ export default function Timesheets() {
                 <p className="text-xs">Submitted reports from the STS Hub will appear here.</p>
               </div>
             ) : (
-              submitted.map(ts => <ShiftReportCard key={ts.id} report={ts} />)
+              submitted.map(ts => (
+                <ShiftReportCard
+                  key={ts.id}
+                  report={ts}
+                  selectable
+                  selected={selectedIds.includes(ts.id)}
+                  onToggle={toggleSelect}
+                />
+              ))
             )}
           </div>
         </div>
@@ -66,7 +147,18 @@ export default function Timesheets() {
                 <p className="text-xs text-muted-foreground">Past and approved shift reports</p>
               </div>
             </div>
-            <span className="text-xs font-medium px-2 py-1 rounded-full bg-success/10 text-success">{approved.length}</span>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleGeneratePdf}
+                disabled={approved.length === 0 || generatingPdf}
+              >
+                {generatingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                Pay Run PDF
+              </Button>
+              <span className="text-xs font-medium px-2 py-1 rounded-full bg-success/10 text-success">{approved.length}</span>
+            </div>
           </div>
 
           <div className="space-y-3 flex-1 overflow-y-auto">
