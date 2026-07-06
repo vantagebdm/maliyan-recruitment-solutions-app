@@ -110,6 +110,10 @@
       "type": "string",
       "description": "Origin of the timesheet entry e.g. sts_hub, manual",
       "default": "manual"
+    },
+    "pay_run_folder_id": {
+      "type": "string",
+      "description": "Reference to PayRunFolder entity"
     }
   },
   "required": [
