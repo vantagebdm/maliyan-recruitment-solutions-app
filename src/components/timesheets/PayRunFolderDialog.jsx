@@ -16,9 +16,17 @@ export default function PayRunFolderDialog({ open, onOpenChange, onConfirm, sele
 
   useEffect(() => {
     if (open) {
-      base44.entities.Client.list()
-        .then(data => setClients(data))
-        .catch(() => setClients([]));
+      Promise.all([
+        base44.entities.Client.list().catch(() => []),
+        base44.entities.PartnerHub.list().catch(() => [])
+      ]).then(([clientData, partnerData]) => {
+        const partnerClients = partnerData.map(p => ({
+          id: p.id,
+          company_name: p.partner_id,
+          is_partner: true
+        }));
+        setClients([...clientData, ...partnerClients]);
+      });
       setClientName('');
       setWeekEnding('');
       setPayCycle('weekly');
