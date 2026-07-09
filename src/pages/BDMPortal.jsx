@@ -48,12 +48,12 @@ export default function BDMPortal() {
 
   // Stats
   const allPolicies = useMemo(() => getAllPolicies(), []);
-  const totalChecked = allPolicies.filter((p) => checkedMap[policyKey(p.category, p.policy)]?.checked).length;
+  const totalChecked = allPolicies.filter((p) => checkedMap[policyKey(p.category, p.policy)]?.approval_status === 'approved').length;
   const totalPolicies = allPolicies.length;
   const overallPct = totalPolicies > 0 ? Math.round((totalChecked / totalPolicies) * 100) : 0;
 
   const priorityChecked = effectivePriorities.filter((p) => {
-    return allPolicies.some((ap) => ap.policy === p && checkedMap[policyKey(ap.category, ap.policy)]?.checked);
+    return allPolicies.some((ap) => ap.policy === p && checkedMap[policyKey(ap.category, ap.policy)]?.approval_status === 'approved');
   }).length;
   const priorityPct = effectivePriorities.length > 0 ? Math.round((priorityChecked / effectivePriorities.length) * 100) : 0;
 
@@ -105,6 +105,13 @@ export default function BDMPortal() {
 
   const handleManage = (category, policy) => {
     setManageItem({ category, policy });
+    if (tracker) {
+      const key = policyKey(category, policy);
+      const entry = checkedMap[key];
+      if (entry?.new_comment_count > 0) {
+        updateEntryMutation.mutate({ category, policy, updatedEntry: { new_comment_count: 0 } });
+      }
+    }
   };
 
   const handlePanelUpdate = (updatedEntry) => {
@@ -189,7 +196,7 @@ export default function BDMPortal() {
         <div className="flex flex-wrap gap-2">
           {effectivePriorities.map((p) => {
             const entry = allPolicies.find((ap) => ap.policy === p);
-            const isChecked = entry ? !!checkedMap[policyKey(entry.category, entry.policy)]?.checked : false;
+            const isChecked = entry ? checkedMap[policyKey(entry.category, entry.policy)]?.approval_status === 'approved' : false;
             return (
               <span
                 key={p}
@@ -259,7 +266,7 @@ export default function BDMPortal() {
         <PolicyItemPanel
           category={manageItem.category}
           policy={manageItem.policy}
-          entry={checkedMap[policyKey(manageItem.category, manageItem.policy)] || { checked: true }}
+          entry={checkedMap[policyKey(manageItem.category, manageItem.policy)] || {}}
           onUpdate={handlePanelUpdate}
           onClose={() => setManageItem(null)}
         />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Star, FileText, Clock, CheckCircle2, Upload, ClipboardCheck, FileCheck } from 'lucide-react';
+import { ChevronDown, ChevronRight, Star, FileText, Clock, CheckCircle2, Upload, ClipboardCheck, FileCheck, MessageCircle } from 'lucide-react';
 
 
 const APPROVAL_BADGE = {
@@ -11,7 +11,7 @@ const APPROVAL_BADGE = {
 export default function PolicyCategory({ category, color, policies, checkedMap, onToggle, onManage, isPriority, onTogglePriority }) {
   const [expanded, setExpanded] = useState(true);
 
-  const checkedCount = policies.filter((p) => checkedMap[`${category}::${p}`]?.checked).length;
+  const checkedCount = policies.filter((p) => checkedMap[`${category}::${p}`]?.approval_status === 'approved').length;
   const total = policies.length;
   const pct = total > 0 ? Math.round((checkedCount / total) * 100) : 0;
 
@@ -45,12 +45,14 @@ export default function PolicyCategory({ category, color, policies, checkedMap, 
           {policies.map((policy) => {
             const key = `${category}::${policy}`;
             const entry = checkedMap[key];
-            const isChecked = !!entry?.checked;
+            const isChecked = entry?.approval_status === 'approved';
+            const inProgress = entry?.approval_status !== 'approved' && (entry?.comments?.length > 0 || ['uploaded', 'assessed'].includes(entry?.approval_status));
+            const newComments = (entry?.new_comment_count || 0) > 0;
             const priority = isPriority(policy);
             return (
               <div
                 key={key}
-                className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/30 transition-colors group"
+                className={`flex items-center gap-3 px-4 py-2.5 transition-colors group ${inProgress ? 'bg-orange-500/10 hover:bg-orange-500/15' : 'hover:bg-muted/30'}`}
               >
                 <input
                   type="checkbox"
@@ -61,6 +63,14 @@ export default function PolicyCategory({ category, color, policies, checkedMap, 
                 <span className={`text-sm flex-1 ${isChecked ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                   {policy}
                 </span>
+                {newComments && (
+                  <span className="relative flex-shrink-0" title="New comment">
+                    <MessageCircle className="w-4 h-4 text-red-500 fill-red-500" />
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-bold rounded-full min-w-[14px] h-[14px] flex items-center justify-center px-0.5">
+                      {entry.new_comment_count}
+                    </span>
+                  </span>
+                )}
                 <button
                   onClick={(e) => { e.stopPropagation(); onTogglePriority(policy); }}
                   className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full transition-colors ${priority ? 'text-accent bg-accent/10' : 'text-muted-foreground bg-muted opacity-0 group-hover:opacity-100'} hover:bg-accent/20`}

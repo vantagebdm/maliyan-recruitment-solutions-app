@@ -121,6 +121,7 @@ export default function PolicyItemPanel({ category, policy, entry, onUpdate, onC
         date: new Date().toISOString(),
         images: pendingImages.map(img => img.url),
       }],
+      new_comment_count: (entry?.new_comment_count || 0) + 1,
     });
     setComment('');
     setPendingImages([]);
