@@ -30,6 +30,7 @@ import Settings from '@/pages/Settings';
 import Brainstorm from '@/pages/Brainstorm';
 import MaliyanPortal from '@/pages/MaliyanPortal';
 import BDMPortal from '@/pages/BDMPortal';
+import MaliyanStaffPortal from '@/pages/MaliyanStaffPortal';
 import CandidateCard from '@/pages/CandidateCard';
 
 const AuthenticatedApp = () => {
@@ -80,6 +81,7 @@ const AuthenticatedApp = () => {
           <Route path="/brainstorm" element={<Brainstorm />} />
           <Route path="/clients/maliyan" element={<MaliyanPortal />} />
           <Route path="/bdm-portal" element={<BDMPortal />} />
+          <Route path="/maliyan-staff" element={<MaliyanStaffPortal />} />
         </Route>
       </Route>
 

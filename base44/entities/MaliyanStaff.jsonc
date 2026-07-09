@@ -1,0 +1,82 @@
+{
+  "name": "MaliyanStaff",
+  "type": "object",
+  "properties": {
+    "first_name": {
+      "type": "string"
+    },
+    "last_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "position": {
+      "type": "string",
+      "description": "Job title e.g. Operations Manager"
+    },
+    "department": {
+      "type": "string",
+      "enum": [
+        "Operations",
+        "Recruitment",
+        "Finance",
+        "Compliance",
+        "IT",
+        "Administration",
+        "Management",
+        "Other"
+      ]
+    },
+    "employment_type": {
+      "type": "string",
+      "enum": [
+        "full_time",
+        "part_time",
+        "casual",
+        "contract"
+      ],
+      "default": "full_time"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "location": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "on_leave",
+        "inactive",
+        "terminated"
+      ],
+      "default": "active"
+    },
+    "photo_url": {
+      "type": "string"
+    },
+    "linked_in": {
+      "type": "string"
+    },
+    "emergency_contact_name": {
+      "type": "string"
+    },
+    "emergency_contact_phone": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "first_name",
+    "last_name",
+    "email"
+  ]
+}

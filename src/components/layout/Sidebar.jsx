@@ -22,6 +22,7 @@ const navItems = [
   { label: 'AI Assistant', icon: Bot, path: '/ai-assistant' },
   { label: 'Settings', icon: Settings, path: '/settings' },
   { label: 'Brainstorm', icon: MessageSquare, path: '/brainstorm' },
+  { label: 'Maliyan Staff Portal', icon: Users, path: '/maliyan-staff' },
   { label: 'BDM Portal', icon: ClipboardCheck, path: '/bdm-portal' },
 ];
 
