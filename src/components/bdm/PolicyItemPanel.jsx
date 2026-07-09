@@ -69,8 +69,7 @@ export default function PolicyItemPanel({ category, policy, entry, onUpdate, onC
     });
   };
 
-  const handleImageSelect = async (e) => {
-    const files = Array.from(e.target.files || []);
+  const uploadImageFiles = async (files) => {
     if (!files.length) return;
     setUploadingImages(true);
     try {
@@ -83,8 +82,26 @@ export default function PolicyItemPanel({ category, policy, entry, onUpdate, onC
       setPendingImages(prev => [...prev, ...uploaded]);
     } finally {
       setUploadingImages(false);
-      e.target.value = '';
     }
+  };
+
+  const handleImageSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    uploadImageFiles(files);
+    e.target.value = '';
+  };
+
+  const handlePaste = (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const imageFiles = [];
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) imageFiles.push(file);
+      }
+    }
+    if (imageFiles.length) uploadImageFiles(imageFiles);
   };
 
   const handleRemovePendingImage = (idx) => {
@@ -297,6 +314,7 @@ export default function PolicyItemPanel({ category, policy, entry, onUpdate, onC
                 rows={2}
                 className="text-sm resize-none"
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddComment(); } }}
+                onPaste={handlePaste}
               />
               <label className="cursor-pointer flex-shrink-0">
                 <div className="h-9 w-9 flex items-center justify-center rounded-md border border-input bg-transparent hover:bg-accent hover:text-accent-foreground transition-colors">
