@@ -241,6 +241,37 @@ export default function PolicyItemPanel({ category, policy, entry, onUpdate, onC
             )}
           </div>
 
+          {/* Draft Box */}
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3">Draft Box</h3>
+            <div className="border border-border rounded-xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">
+                  {draftContent.trim() ? `${draftContent.trim().split(/\s+/).length} words` : 'No draft content yet'}
+                </p>
+              </div>
+              {draftContent.trim() ? (
+                <div className="text-sm text-foreground/80 bg-muted/30 rounded-lg p-3 line-clamp-3 whitespace-pre-wrap">
+                  {draftContent}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground/70">Open the notepad editor to draft your policy content before building the final document.</p>
+              )}
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="gap-1.5 flex-1" onClick={() => setDraftOpen(true)}>
+                  <PenLine className="w-3.5 h-3.5" /> {draftContent.trim() ? 'Edit Draft' : 'Open Notepad'}
+                </Button>
+                {draftContent.trim() && (
+                  <Button variant="ghost" size="sm" className="gap-1.5" onClick={handleDraftCopy}>
+                    {draftCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    {draftCopied ? 'Copied' : 'Copy'}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* Action buttons */}
           <div className="space-y-2">
             <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Actions</h3>
