@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Upload, FileCheck, ClipboardCheck, CheckCircle2, ExternalLink, Trash2, Send, FileText } from 'lucide-react';
+import { X, Upload, FileCheck, ClipboardCheck, CheckCircle2, ExternalLink, Trash2, Send, FileText, ImagePlus, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -20,6 +20,8 @@ const STAGE_BADGE = {
 export default function PolicyItemPanel({ category, policy, entry, onUpdate, onClose }) {
   const [uploading, setUploading] = useState(false);
   const [comment, setComment] = useState('');
+  const [pendingImages, setPendingImages] = useState([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   const documentUrl = entry?.document_url || null;
   const documentName = entry?.document_name || null;
@@ -67,14 +69,44 @@ export default function PolicyItemPanel({ category, policy, entry, onUpdate, onC
     });
   };
 
-  const handleAddComment = () => {
+  const handleImageSelect = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setUploadingImages(true);
+    try {
+      const base44 = (await import('@/api/base44Client')).base44;
+      const uploaded = [];
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        uploaded.push({ url: file_url, name: file.name });
+      }
+      setPendingImages(prev => [...prev, ...uploaded]);
+    } finally {
+      setUploadingImages(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleRemovePendingImage = (idx) => {
+    setPendingImages(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleAddComment = async () => {
     const text = comment.trim();
-    if (!text) return;
+    if (!text && pendingImages.length === 0) return;
+    const base44 = (await import('@/api/base44Client')).base44;
+    const user = await base44.auth.me().catch(() => null);
     onUpdate({
       ...entry,
-      comments: [...comments, { author_name: 'You', text, date: new Date().toISOString() }],
+      comments: [...comments, {
+        author_name: user?.full_name || 'You',
+        text: text || '(images only)',
+        date: new Date().toISOString(),
+        images: pendingImages.map(img => img.url),
+      }],
     });
     setComment('');
+    setPendingImages([]);
   };
 
   const handleRemoveDocument = () => {
@@ -226,6 +258,15 @@ export default function PolicyItemPanel({ category, policy, entry, onUpdate, onC
                         )}
                       </div>
                       <p className="text-sm text-foreground/90 break-words">{c.text}</p>
+                      {c.images && c.images.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {c.images.map((url, imgIdx) => (
+                            <a key={imgIdx} href={url} target="_blank" rel="noopener noreferrer">
+                              <img src={url} alt={`attachment ${imgIdx + 1}`} className="w-16 h-16 rounded-lg object-cover border border-border hover:opacity-80 transition-opacity" />
+                            </a>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -233,7 +274,22 @@ export default function PolicyItemPanel({ category, policy, entry, onUpdate, onC
             ) : (
               <p className="text-xs text-muted-foreground mb-3">No comments yet. Add feedback below.</p>
             )}
-            <div className="flex gap-2">
+            {pendingImages.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {pendingImages.map((img, i) => (
+                  <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border border-border group">
+                    <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => handleRemovePendingImage(i)}
+                      className="absolute top-0.5 right-0.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <XCircle className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2 items-end">
               <Textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
@@ -242,7 +298,17 @@ export default function PolicyItemPanel({ category, policy, entry, onUpdate, onC
                 className="text-sm resize-none"
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddComment(); } }}
               />
-              <Button size="icon" onClick={handleAddComment} disabled={!comment.trim()} className="flex-shrink-0 h-9 w-9">
+              <label className="cursor-pointer flex-shrink-0">
+                <div className="h-9 w-9 flex items-center justify-center rounded-md border border-input bg-transparent hover:bg-accent hover:text-accent-foreground transition-colors">
+                  {uploadingImages ? (
+                    <div className="w-4 h-4 border-2 border-muted-foreground border-t-foreground rounded-full animate-spin" />
+                  ) : (
+                    <ImagePlus className="w-4 h-4" />
+                  )}
+                </div>
+                <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageSelect} disabled={uploadingImages} />
+              </label>
+              <Button size="icon" onClick={handleAddComment} disabled={!comment.trim() && pendingImages.length === 0} className="flex-shrink-0 h-9 w-9">
                 <Send className="w-4 h-4" />
               </Button>
             </div>
