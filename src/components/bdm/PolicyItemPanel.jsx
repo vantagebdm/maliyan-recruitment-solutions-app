@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { X, Upload, FileCheck, ClipboardCheck, CheckCircle2, ExternalLink, Trash2, Send, FileText, ImagePlus, XCircle } from 'lucide-react';
+import { X, Upload, FileCheck, ClipboardCheck, CheckCircle2, ExternalLink, Trash2, Send, FileText, ImagePlus, XCircle, PenLine, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import DraftEditor from '@/components/bdm/DraftEditor';
 
 const STAGES = [
   { key: 'not_started', label: 'Not Started' },
@@ -22,6 +23,8 @@ export default function PolicyItemPanel({ category, policy, entry, onUpdate, onC
   const [comment, setComment] = useState('');
   const [pendingImages, setPendingImages] = useState([]);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [draftOpen, setDraftOpen] = useState(false);
+  const [draftCopied, setDraftCopied] = useState(false);
 
   const documentUrl = entry?.document_url || null;
   const documentName = entry?.document_name || null;
@@ -129,6 +132,27 @@ export default function PolicyItemPanel({ category, policy, entry, onUpdate, onC
 
   const handleRemoveDocument = () => {
     onUpdate({ ...entry, document_url: null, document_name: null, approval_status: 'not_started' });
+  };
+
+  const draftContent = entry?.draft_content || '';
+
+  const handleDraftSave = (content) => {
+    onUpdate({
+      ...entry,
+      draft_content: content,
+      comments: content.trim() && !draftContent.trim()
+        ? [...comments, { author_name: 'You', text: 'Draft content added — ready to build document.', date: new Date().toISOString(), system: true }]
+        : comments,
+    });
+  };
+
+  const handleDraftCopy = async () => {
+    if (!draftContent.trim()) return;
+    try {
+      await navigator.clipboard.writeText(draftContent);
+      setDraftCopied(true);
+      setTimeout(() => setDraftCopied(false), 2000);
+    } catch {}
   };
 
   const stageIdx = STAGES.findIndex((s) => s.key === stage);
@@ -334,6 +358,16 @@ export default function PolicyItemPanel({ category, policy, entry, onUpdate, onC
           </div>
         </div>
       </div>
+
+      {draftOpen && (
+        <DraftEditor
+          policy={policy}
+          category={category}
+          initialContent={draftContent}
+          onSave={handleDraftSave}
+          onClose={() => setDraftOpen(false)}
+        />
+      )}
     </>
   );
 }
