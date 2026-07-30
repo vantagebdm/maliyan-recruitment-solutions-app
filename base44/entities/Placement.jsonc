@@ -50,14 +50,14 @@
         "active",
         "completed",
         "terminated",
-        "on_hold"
+        "on_hold",
+        "closed"
       ],
       "default": "pending"
     }
   },
   "required": [
     "candidate_id",
-    "job_id",
     "client_id"
   ]
 }

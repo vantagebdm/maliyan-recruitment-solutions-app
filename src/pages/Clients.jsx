@@ -7,8 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Building2, Phone, Mail, MapPin } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Plus, Search, Building2, Phone, Mail, MapPin, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 import StatusBadge from '../components/shared/StatusBadge';
 
 export default function Clients() {
@@ -17,7 +17,14 @@ export default function Clients() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({});
+  const [expandedClient, setExpandedClient] = useState(null);
   const queryClient = useQueryClient();
+
+  const { data: placements = [] } = useQuery({
+    queryKey: ['placements'],
+    queryFn: () => base44.entities.Placement.list('-created_date'),
+    initialData: [],
+  });
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ['clients'],
@@ -156,6 +163,51 @@ export default function Clients() {
                 )}
                 {client.industry && <p className="mt-2 font-medium text-foreground">{client.industry}</p>}
               </div>
+
+              {/* Employees / Placements */}
+              {(() => {
+                const clientPlacements = placements.filter(p => p.client_id === client.id);
+                const activeCount = clientPlacements.filter(p => p.status === 'active').length;
+                return (
+                  <div className="mt-3 border-t border-border pt-3">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setExpandedClient(expandedClient === client.id ? null : client.id); }}
+                      className="w-full flex items-center justify-between text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <Users className="w-3.5 h-3.5" /> Employees / Placements
+                        {activeCount > 0 && <span className="inline-flex px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 text-[10px] font-semibold">{activeCount} active</span>}
+                      </span>
+                      {expandedClient === client.id ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    </button>
+                    {expandedClient === client.id && (
+                      <div className="mt-2 space-y-1">
+                        {clientPlacements.length === 0 ? (
+                          <p className="text-xs text-muted-foreground italic pl-1">No placements recorded.</p>
+                        ) : (
+                          clientPlacements.map(p => (
+                            <div key={p.id} className="flex items-center justify-between gap-2 text-xs py-1">
+                              {p.candidate_id ? (
+                                <Link to={`/candidates/${p.candidate_id}`} onClick={(e) => e.stopPropagation()} className="font-medium text-primary hover:underline truncate">
+                                  {p.candidate_name || 'View candidate'}
+                                </Link>
+                              ) : (
+                                <span className="truncate">{p.candidate_name}</span>
+                              )}
+                              <span className="flex items-center gap-2 flex-shrink-0">
+                                {p.job_title && <span className="text-muted-foreground truncate max-w-[120px]">{p.job_title}</span>}
+                                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${p.status === 'active' ? 'bg-emerald-500/10 text-emerald-700' : 'bg-muted text-muted-foreground'}`}>
+                                  {p.status === 'active' ? 'Active' : p.status}
+                                </span>
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           ))}
         </div>

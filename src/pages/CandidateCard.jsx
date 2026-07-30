@@ -14,6 +14,8 @@ import CommentsSection from '@/components/candidate-card/CommentsSection';
 import VerificationSection from '@/components/candidate-card/VerificationSection';
 import DocumentationSection from '@/components/candidate-card/DocumentationSection';
 import ActivitiesSection from '@/components/candidate-card/ActivitiesSection';
+import PlacementsSection from '@/components/candidate-card/PlacementsSection';
+import { Briefcase, Clock, Calendar } from 'lucide-react';
 
 const STAGE_CONFIG = {
   available: { label: 'Available', cls: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30' },
@@ -43,6 +45,44 @@ export default function CandidateCard() {
     mutationFn: ({ id, data }) => base44.entities.Candidate.update(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['candidate', id] }),
   });
+
+  const { data: placements = [] } = useQuery({
+    queryKey: ['placements', id],
+    queryFn: () => base44.entities.Placement.filter({ candidate_id: id }),
+    enabled: !!id,
+    initialData: [],
+  });
+
+  const { data: clients = [], isLoading: isLoadingClients } = useQuery({
+    queryKey: ['clients'],
+    queryFn: () => base44.entities.Client.list('-created_date'),
+    initialData: [],
+  });
+
+  const createPlacementMutation = useMutation({
+    mutationFn: (data) => base44.entities.Placement.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['placements', id] }),
+  });
+  const updatePlacementMutation = useMutation({
+    mutationFn: ({ pid, data }) => base44.entities.Placement.update(pid, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['placements', id] }),
+  });
+  const deletePlacementMutation = useMutation({
+    mutationFn: (pid) => base44.entities.Placement.delete(pid),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['placements', id] }),
+  });
+
+  const currentPlacement = placements.find(p => p.status === 'active');
+
+  const handleAddPlacement = (payload) => {
+    createPlacementMutation.mutateAsync(payload).then(() => logActivity('stage_changed', `Placement added with ${payload.client_name}`));
+  };
+  const handleUpdatePlacement = (pid, payload) => {
+    updatePlacementMutation.mutateAsync({ pid, data: payload }).then(() => logActivity('stage_changed', `Placement updated for ${payload.client_name}`));
+  };
+  const handleDeletePlacement = (pid) => {
+    deletePlacementMutation.mutateAsync(pid).then(() => logActivity('stage_changed', 'Placement record removed'));
+  };
 
   const logActivity = async (type, description) => {
     try {
@@ -231,6 +271,30 @@ export default function CandidateCard() {
         </div>
       </div>
 
+      {/* Current Placement summary */}
+      {currentPlacement && (
+        <div className="bg-emerald-500/5 border border-emerald-500/30 rounded-xl p-4 flex items-center gap-3 flex-wrap">
+          <div className="w-9 h-9 rounded-lg bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
+            <Briefcase className="w-4 h-4 text-emerald-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <span className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Current Placement</span>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-0.5 text-sm mt-0.5">
+              {currentPlacement.client_id ? (
+                <Link to="/clients" className="font-semibold text-primary hover:underline">{currentPlacement.client_name}</Link>
+              ) : (
+                <span className="font-semibold">{currentPlacement.client_name}</span>
+              )}
+              {currentPlacement.job_title && <span className="text-muted-foreground">{currentPlacement.job_title}</span>}
+              {currentPlacement.site && <span className="inline-flex items-center gap-1 text-muted-foreground"><MapPin className="w-3 h-3" />{currentPlacement.site}</span>}
+              {currentPlacement.roster && <span className="inline-flex items-center gap-1 text-muted-foreground"><Clock className="w-3 h-3" />{currentPlacement.roster}</span>}
+              {currentPlacement.start_date && <span className="inline-flex items-center gap-1 text-muted-foreground"><Calendar className="w-3 h-3" />Since {format(new Date(currentPlacement.start_date), 'dd MMM yyyy')}</span>}
+            </div>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => scrollToSection('placements')}>View placements</Button>
+        </div>
+      )}
+
       {/* Quick Access */}
       <QuickAccess activeSection={activeSection} onSelect={scrollToSection} />
 
@@ -254,6 +318,19 @@ export default function CandidateCard() {
         <div ref={el => sectionRefs.current.activities = el}>
           <ActivitiesSection candidate={candidate} />
         </div>
+      </div>
+
+      {/* Placements (full width) */}
+      <div ref={el => sectionRefs.current.placements = el}>
+        <PlacementsSection
+          candidate={candidate}
+          placements={placements}
+          clients={clients}
+          isLoadingClients={isLoadingClients}
+          onAdd={handleAddPlacement}
+          onUpdate={handleUpdatePlacement}
+          onDelete={handleDeletePlacement}
+        />
       </div>
 
       {/* Edit dialog */}
