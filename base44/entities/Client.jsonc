@@ -43,6 +43,10 @@
     "website": {
       "type": "string"
     },
+    "invoicing_requirements": {
+      "type": "string",
+      "description": "Special invoicing requirements e.g. PO numbers, split invoicing"
+    },
     "notes": {
       "type": "string"
     },
@@ -57,6 +61,87 @@
     },
     "logo_url": {
       "type": "string"
+    },
+    "contacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "primary",
+              "accounts",
+              "recruitment",
+              "timesheet",
+              "site",
+              "other"
+            ]
+          }
+        }
+      }
+    },
+    "client_documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "e.g. Client Agreement, Public Liability Insurance, WHS Policy"
+          },
+          "document_name": {
+            "type": "string"
+          },
+          "file_url": {
+            "type": "string"
+          },
+          "uploaded_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "expiry_date": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    },
+    "client_activities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "call",
+              "email",
+              "change",
+              "note",
+              "meeting"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "by": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "required": [

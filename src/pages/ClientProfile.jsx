@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import StatusBadge from '@/components/shared/StatusBadge';
-import TrafficLight from '@/components/shared/TrafficLight';
+
 import ClientFormDialog from '@/components/clients/ClientFormDialog';
 import OverviewTab from '@/components/client-profile/OverviewTab';
 import ContactsTab from '@/components/client-profile/ContactsTab';
@@ -60,7 +60,6 @@ export default function ClientProfile() {
   const jobIds = new Set(jobs.map(j => j.id));
   const clientApplications = applications.filter(a => jobIds.has(a.job_id));
 
-  const placedCandidateIds = [...new Set(placements.map(p => p.candidate_id).filter(Boolean))];
   const { data: allCandidates = [] } = useQuery({
     queryKey: ['candidates'],
     queryFn: () => base44.entities.Candidate.list('-created_date'),
@@ -74,7 +73,11 @@ export default function ClientProfile() {
     queryFn: () => base44.entities.ComplianceItem.list('-created_date'),
     initialData: [],
   });
-  const clientCompliance = allCompliance.filter(c => placedCandidateIds.includes(c.candidate_id));
+
+  // Use the same linked placement records for Active Employees and compliance
+  const activePlacements = placements.filter(p => p.status === 'active');
+  const activeCandidateIds = [...new Set(activePlacements.map(p => p.candidate_id).filter(Boolean))];
+  const clientCompliance = allCompliance.filter(c => activeCandidateIds.includes(c.candidate_id));
 
   if (isLoading) {
     return (
@@ -93,17 +96,22 @@ export default function ClientProfile() {
     );
   }
 
-  const activeEmployees = placements.filter(p => p.status === 'active').length;
+  const activeEmployees = activePlacements.length;
   const openJobs = jobs.filter(j => j.status === 'open').length;
 
-  // Compliance status aggregate from placed candidates' compliance items
+  // Compliance summary based on the client's compliance documents
   const cc = clientCompliance;
-  const complianceScore = cc.length === 0 ? null : (() => {
-    if (cc.some(c => c.compliance_status === 'expired')) return 'expired';
-    if (cc.some(c => c.compliance_status === 'missing')) return 'missing';
-    if (cc.some(c => c.compliance_status === 'expiring_soon')) return 'expiring_soon';
-    return 'compliant';
-  })();
+  const complianceSummary = activePlacements.length === 0
+    ? { label: 'No employees linked', tone: 'muted' }
+    : cc.length === 0
+      ? { label: 'Documents Due', tone: 'amber' }
+      : cc.some(c => ['expired', 'missing', 'non_compliant'].includes(c.compliance_status))
+        ? { label: 'Non-Compliant', tone: 'red' }
+        : cc.some(c => c.compliance_status === 'expiring_soon')
+          ? { label: 'Expiring Soon', tone: 'amber' }
+          : { label: 'Complete', tone: 'green' };
+  const toneClass = { muted: 'bg-muted text-muted-foreground', amber: 'bg-amber-100 text-amber-700', red: 'bg-red-100 text-red-700', green: 'bg-emerald-100 text-emerald-700' }[complianceSummary.tone];
+  const dotClass = { muted: 'bg-muted-foreground', amber: 'bg-amber-500', red: 'bg-red-500', green: 'bg-emerald-500' }[complianceSummary.tone];
 
   return (
     <div className="space-y-6">
@@ -159,7 +167,10 @@ export default function ClientProfile() {
           <div className="flex items-center gap-2 ml-auto">
             <ShieldCheck className="w-4 h-4 text-muted-foreground" />
             <span className="text-muted-foreground">Compliance:</span>
-            {complianceScore ? <TrafficLight status={complianceScore} /> : <span className="text-muted-foreground text-xs">No employees linked</span>}
+            <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-full ${toneClass}`}>
+              <span className={`w-2 h-2 rounded-full ${dotClass}`} />
+              {complianceSummary.label}
+            </span>
           </div>
         </div>
       </div>
@@ -185,22 +196,22 @@ export default function ClientProfile() {
           <ContactsTab client={client} />
         </TabsContent>
         <TabsContent value="job-orders" className="mt-4">
-          <JobOrdersTab jobs={jobs} />
+          <JobOrdersTab jobs={jobs} client={client} />
         </TabsContent>
         <TabsContent value="candidates" className="mt-4">
-          <CandidatesSubmittedTab applications={clientApplications} candidates={candidateMap} />
+          <CandidatesSubmittedTab applications={clientApplications} candidates={allCandidates} jobs={jobs} client={client} />
         </TabsContent>
         <TabsContent value="employees" className="mt-4">
-          <EmployeesPlacementsTab placements={placements} />
+          <EmployeesPlacementsTab placements={placements} candidates={allCandidates} client={client} />
         </TabsContent>
         <TabsContent value="timesheets" className="mt-4">
-          <TimesheetsTab timesheets={timesheets} />
+          <TimesheetsTab timesheets={timesheets} placements={placements} client={client} />
         </TabsContent>
         <TabsContent value="rates" className="mt-4">
           <RatesBillingTab client={client} jobs={jobs} placements={placements} />
         </TabsContent>
         <TabsContent value="compliance" className="mt-4">
-          <DocumentsComplianceTab placements={placements} candidates={candidateMap} compliance={clientCompliance} />
+          <DocumentsComplianceTab client={client} activePlacements={activePlacements} candidateMap={candidateMap} compliance={clientCompliance} />
         </TabsContent>
         <TabsContent value="activity" className="mt-4">
           <ActivityNotesTab client={client} />
