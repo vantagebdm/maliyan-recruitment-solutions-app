@@ -5,6 +5,13 @@
     "company_name": {
       "type": "string"
     },
+    "trading_name": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "Display ID e.g. CLI-00012"
+    },
     "abn": {
       "type": "string"
     },
@@ -23,11 +30,42 @@
     "billing_address": {
       "type": "string"
     },
+    "site_address": {
+      "type": "string"
+    },
     "site_locations": {
       "type": "array",
       "items": {
         "type": "string"
       }
+    },
+    "primary_worksite": {
+      "type": "string"
+    },
+    "standard_roster": {
+      "type": "string"
+    },
+    "standard_shift_hours": {
+      "type": "string"
+    },
+    "employment_types_supplied": {
+      "type": "string"
+    },
+    "timesheet_frequency": {
+      "type": "string"
+    },
+    "timesheet_approver": {
+      "type": "string"
+    },
+    "invoice_frequency": {
+      "type": "string"
+    },
+    "po_required": {
+      "type": "boolean",
+      "default": false
+    },
+    "site_induction_requirements": {
+      "type": "string"
     },
     "approved_rates": {
       "type": "string",
@@ -36,16 +74,16 @@
     "payment_terms": {
       "type": "string"
     },
+    "invoicing_requirements": {
+      "type": "string",
+      "description": "Special invoicing requirements e.g. PO numbers, split invoicing"
+    },
     "account_manager": {
       "type": "string",
       "description": "Internal Maliyan account manager responsible for this client"
     },
     "website": {
       "type": "string"
-    },
-    "invoicing_requirements": {
-      "type": "string",
-      "description": "Special invoicing requirements e.g. PO numbers, split invoicing"
     },
     "notes": {
       "type": "string"
@@ -116,20 +154,68 @@
         }
       }
     },
+    "client_compliance": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item": {
+            "type": "string"
+          },
+          "reference_number": {
+            "type": "string"
+          },
+          "expiry_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "date_verified": {
+            "type": "string",
+            "format": "date"
+          },
+          "verified_by": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "verified",
+              "pending",
+              "expired",
+              "not_required"
+            ],
+            "default": "pending"
+          }
+        }
+      }
+    },
+    "client_comments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "author_name": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "client_activities": {
       "type": "array",
       "items": {
         "type": "object",
         "properties": {
           "type": {
-            "type": "string",
-            "enum": [
-              "call",
-              "email",
-              "change",
-              "note",
-              "meeting"
-            ]
+            "type": "string"
           },
           "description": {
             "type": "string"

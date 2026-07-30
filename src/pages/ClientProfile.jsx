@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import StatusBadge from '@/components/shared/StatusBadge';
-
+import { Loader2, ArrowLeft } from 'lucide-react';
 import ClientFormDialog from '@/components/clients/ClientFormDialog';
-import OverviewTab from '@/components/client-profile/OverviewTab';
+import ClientQuickAccess from '@/components/client-profile/ClientQuickAccess';
+import ClientHeader from '@/components/client-profile/ClientHeader';
+import CurrentWorkforceBanner from '@/components/client-profile/CurrentWorkforceBanner';
+import CompanyDetailsCard from '@/components/client-profile/CompanyDetailsCard';
+import OperationalDetailsCard from '@/components/client-profile/OperationalDetailsCard';
+import ClientCommentsSection from '@/components/client-profile/ClientCommentsSection';
+import ClientComplianceSection from '@/components/client-profile/ClientComplianceSection';
 import ContactsTab from '@/components/client-profile/ContactsTab';
 import JobOrdersTab from '@/components/client-profile/JobOrdersTab';
 import CandidatesSubmittedTab from '@/components/client-profile/CandidatesSubmittedTab';
@@ -16,17 +19,23 @@ import TimesheetsTab from '@/components/client-profile/TimesheetsTab';
 import RatesBillingTab from '@/components/client-profile/RatesBillingTab';
 import DocumentsComplianceTab from '@/components/client-profile/DocumentsComplianceTab';
 import ActivityNotesTab from '@/components/client-profile/ActivityNotesTab';
-import { Building2, ArrowLeft, Pencil, Mail, Phone, MapPin, User, FileText, Globe, Briefcase, Users, ClipboardList, ShieldCheck } from 'lucide-react';
 
 export default function ClientProfile() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [activeSection, setActiveSection] = useState('company');
   const [showEdit, setShowEdit] = useState(false);
+  const sectionRefs = useRef({});
 
   const { data: client, isLoading } = useQuery({
     queryKey: ['client', id],
     queryFn: () => base44.entities.Client.get(id),
     enabled: !!id,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data) => base44.entities.Client.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['client', id] }),
   });
 
   const { data: jobs = [] } = useQuery({
@@ -50,15 +59,12 @@ export default function ClientProfile() {
     initialData: [],
   });
 
-  const { data: applications = [] } = useQuery({
+  const { data: allApplications = [] } = useQuery({
     queryKey: ['applications', 'client', id],
     queryFn: () => base44.entities.Application.list('-created_date'),
     enabled: !!id,
     initialData: [],
   });
-
-  const jobIds = new Set(jobs.map(j => j.id));
-  const clientApplications = applications.filter(a => jobIds.has(a.job_id));
 
   const { data: allCandidates = [] } = useQuery({
     queryKey: ['candidates'],
@@ -74,32 +80,18 @@ export default function ClientProfile() {
     initialData: [],
   });
 
-  // Use the same linked placement records for Active Employees and compliance
+  const jobIds = new Set(jobs.map(j => j.id));
+  const clientApplications = allApplications.filter(a => jobIds.has(a.job_id));
+
+  // Same linked placement records drive Active Employees + compliance
   const activePlacements = placements.filter(p => p.status === 'active');
   const activeCandidateIds = [...new Set(activePlacements.map(p => p.candidate_id).filter(Boolean))];
   const clientCompliance = allCompliance.filter(c => activeCandidateIds.includes(c.candidate_id));
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-24">
-        <div className="w-6 h-6 border-2 border-muted border-t-primary rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!client) {
-    return (
-      <div className="text-center py-24">
-        <p className="text-muted-foreground">Client not found.</p>
-        <Button variant="outline" onClick={() => navigate('/clients')} className="mt-4">Back to Clients</Button>
-      </div>
-    );
-  }
-
   const activeEmployees = activePlacements.length;
   const openJobs = jobs.filter(j => j.status === 'open').length;
+  const pendingTimesheets = timesheets.filter(t => !['admin_approved', 'paid'].includes(t.status)).length;
 
-  // Compliance summary based on the client's compliance documents
   const cc = clientCompliance;
   const complianceSummary = activePlacements.length === 0
     ? { label: 'No employees linked', tone: 'muted' }
@@ -110,127 +102,151 @@ export default function ClientProfile() {
         : cc.some(c => c.compliance_status === 'expiring_soon')
           ? { label: 'Expiring Soon', tone: 'amber' }
           : { label: 'Complete', tone: 'green' };
-  const toneClass = { muted: 'bg-muted text-muted-foreground', amber: 'bg-amber-100 text-amber-700', red: 'bg-red-100 text-red-700', green: 'bg-emerald-100 text-emerald-700' }[complianceSummary.tone];
-  const dotClass = { muted: 'bg-muted-foreground', amber: 'bg-amber-500', red: 'bg-red-500', green: 'bg-emerald-500' }[complianceSummary.tone];
+
+  const mainWorksite = client?.primary_worksite
+    || activePlacements.find(p => p.site)?.site
+    || client?.site_locations?.[0]
+    || client?.billing_address
+    || '—';
+
+  useEffect(() => {
+    if (client && !client.client_id) {
+      const num = String(client.id).slice(-5).padStart(5, '0');
+      base44.entities.Client.update(client.id, { client_id: `CLI-${num}` });
+    }
+  }, [client]);
+
+  const scrollToSection = (sectionId) => {
+    setActiveSection(sectionId);
+    const ref = sectionRefs.current[sectionId];
+    if (ref) ref.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const handleUpdate = (data) => updateMutation.mutate(data);
+
+  const logActivity = async (type, description) => {
+    try {
+      const user = await base44.auth.me().catch(() => null);
+      const activities = [...(client.client_activities || []), { type, description, by: user?.full_name || 'System', date: new Date().toISOString() }];
+      await base44.entities.Client.update(id, { client_activities: activities });
+      queryClient.invalidateQueries({ queryKey: ['client', id] });
+    } catch (e) { /* non-critical */ }
+  };
+
+  const handleAddComment = async ({ type, text }) => {
+    const user = await base44.auth.me().catch(() => null);
+    const comments = [...(client.client_comments || []), { type, text, author_name: user?.full_name || 'Unknown', date: new Date().toISOString() }];
+    await base44.entities.Client.update(id, { client_comments: comments });
+    queryClient.invalidateQueries({ queryKey: ['client', id] });
+  };
+
+  const handleDeleteComment = async (idx) => {
+    const comments = [...(client.client_comments || [])];
+    comments.splice(idx, 1);
+    await base44.entities.Client.update(id, { client_comments: comments });
+    queryClient.invalidateQueries({ queryKey: ['client', id] });
+  };
+
+  const handleAddCompliance = async (c) => {
+    const items = [...(client.client_compliance || []), { ...c }];
+    await base44.entities.Client.update(id, { client_compliance: items });
+    queryClient.invalidateQueries({ queryKey: ['client', id] });
+  };
+
+  const handleDeleteCompliance = async (idx) => {
+    const items = [...(client.client_compliance || [])];
+    items.splice(idx, 1);
+    await base44.entities.Client.update(id, { client_compliance: items });
+    queryClient.invalidateQueries({ queryKey: ['client', id] });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!client) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-muted-foreground">Client not found.</p>
+        <Link to="/clients" className="text-primary hover:underline mt-2 inline-block">Back to Clients</Link>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <Button variant="ghost" size="sm" onClick={() => navigate('/clients')} className="gap-1.5 -ml-2">
+    <div className="space-y-5">
+      <Link to="/clients" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
         <ArrowLeft className="w-4 h-4" /> Back to Clients
-      </Button>
+      </Link>
 
-      {/* Summary Header */}
-      <div className="bg-card rounded-2xl border border-border p-6">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Building2 className="w-7 h-7 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">{client.company_name}</h1>
-              <div className="flex items-center gap-2 mt-1">
-                <StatusBadge status={client.status} />
-                {client.industry && <span className="text-sm text-muted-foreground">· {client.industry}</span>}
-              </div>
-            </div>
-          </div>
-          <Button onClick={() => setShowEdit(true)} className="gap-1.5">
-            <Pencil className="w-4 h-4" /> Edit Client
-          </Button>
+      <ClientHeader client={client} onEdit={() => setShowEdit(true)} onStatusChange={(s) => handleUpdate({ status: s })} />
+
+      <CurrentWorkforceBanner
+        activeEmployees={activeEmployees}
+        mainWorksite={mainWorksite}
+        openJobs={openJobs}
+        pendingTimesheets={pendingTimesheets}
+        complianceSummary={complianceSummary}
+        onViewEmployees={() => scrollToSection('employees')}
+      />
+
+      <ClientQuickAccess activeSection={activeSection} onSelect={scrollToSection} />
+
+      {/* Row 1: editable detail cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div ref={el => sectionRefs.current.company = el}>
+          <CompanyDetailsCard client={client} onUpdate={handleUpdate} />
         </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-5 pt-5 border-t border-border">
-          <HeaderStat icon={FileText} label="ABN" value={client.abn || '—'} />
-          <HeaderStat icon={MapPin} label="Address" value={client.billing_address || '—'} />
-          <HeaderStat icon={User} label="Primary Contact" value={client.primary_contact_name || '—'} />
-          <HeaderStat icon={User} label="Account Manager" value={client.account_manager || '—'} />
-          <HeaderStat icon={Users} label="Active Employees" value={activeEmployees} accent="emerald" />
-          <HeaderStat icon={Briefcase} label="Open Job Orders" value={openJobs} accent="primary" />
-        </div>
-
-        <div className="flex items-center gap-4 mt-4 pt-4 border-t border-border flex-wrap text-sm">
-          {client.primary_contact_email && (
-            <a href={`mailto:${client.primary_contact_email}`} className="flex items-center gap-1.5 text-muted-foreground hover:text-primary">
-              <Mail className="w-4 h-4" /> {client.primary_contact_email}
-            </a>
-          )}
-          {client.primary_contact_phone && (
-            <span className="flex items-center gap-1.5 text-muted-foreground">
-              <Phone className="w-4 h-4" /> {client.primary_contact_phone}
-            </span>
-          )}
-          {client.website && (
-            <a href={client.website} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-muted-foreground hover:text-primary">
-              <Globe className="w-4 h-4" /> {client.website}
-            </a>
-          )}
-          <div className="flex items-center gap-2 ml-auto">
-            <ShieldCheck className="w-4 h-4 text-muted-foreground" />
-            <span className="text-muted-foreground">Compliance:</span>
-            <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-full ${toneClass}`}>
-              <span className={`w-2 h-2 rounded-full ${dotClass}`} />
-              {complianceSummary.label}
-            </span>
-          </div>
+        <div ref={el => sectionRefs.current.operations = el}>
+          <OperationalDetailsCard client={client} onUpdate={handleUpdate} />
         </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="overview">
-        <TabsList className="flex flex-wrap h-auto gap-1 bg-muted/40 p-1 rounded-xl">
-          <TabsTrigger value="overview" className="text-xs">Overview</TabsTrigger>
-          <TabsTrigger value="contacts" className="text-xs">Contacts</TabsTrigger>
-          <TabsTrigger value="job-orders" className="text-xs">Job Orders</TabsTrigger>
-          <TabsTrigger value="candidates" className="text-xs">Candidates Submitted</TabsTrigger>
-          <TabsTrigger value="employees" className="text-xs">Employees/Placements</TabsTrigger>
-          <TabsTrigger value="timesheets" className="text-xs">Timesheets</TabsTrigger>
-          <TabsTrigger value="rates" className="text-xs">Rates & Billing</TabsTrigger>
-          <TabsTrigger value="compliance" className="text-xs">Documents & Compliance</TabsTrigger>
-          <TabsTrigger value="activity" className="text-xs">Activity & Notes</TabsTrigger>
-        </TabsList>
+      {/* Row 2: comments + client compliance */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div ref={el => sectionRefs.current.comments = el}>
+          <ClientCommentsSection client={client} onAddComment={handleAddComment} onDeleteComment={handleDeleteComment} />
+        </div>
+        <div ref={el => sectionRefs.current.compliance = el}>
+          <ClientComplianceSection client={client} onAddCompliance={handleAddCompliance} onDeleteCompliance={handleDeleteCompliance} />
+        </div>
+      </div>
 
-        <TabsContent value="overview" className="mt-4">
-          <OverviewTab client={client} jobs={jobs} placements={placements} timesheets={timesheets} applications={clientApplications} />
-        </TabsContent>
-        <TabsContent value="contacts" className="mt-4">
+      {/* Remaining sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div ref={el => sectionRefs.current.contacts = el}>
           <ContactsTab client={client} />
-        </TabsContent>
-        <TabsContent value="job-orders" className="mt-4">
+        </div>
+        <div ref={el => sectionRefs.current['job-orders'] = el}>
           <JobOrdersTab jobs={jobs} client={client} />
-        </TabsContent>
-        <TabsContent value="candidates" className="mt-4">
+        </div>
+        <div ref={el => sectionRefs.current.candidates = el}>
           <CandidatesSubmittedTab applications={clientApplications} candidates={allCandidates} jobs={jobs} client={client} />
-        </TabsContent>
-        <TabsContent value="employees" className="mt-4">
+        </div>
+        <div ref={el => sectionRefs.current.employees = el}>
           <EmployeesPlacementsTab placements={placements} candidates={allCandidates} client={client} />
-        </TabsContent>
-        <TabsContent value="timesheets" className="mt-4">
+        </div>
+        <div ref={el => sectionRefs.current.timesheets = el}>
           <TimesheetsTab timesheets={timesheets} placements={placements} client={client} />
-        </TabsContent>
-        <TabsContent value="rates" className="mt-4">
+        </div>
+        <div ref={el => sectionRefs.current.rates = el}>
           <RatesBillingTab client={client} jobs={jobs} placements={placements} />
-        </TabsContent>
-        <TabsContent value="compliance" className="mt-4">
-          <DocumentsComplianceTab client={client} activePlacements={activePlacements} candidateMap={candidateMap} compliance={clientCompliance} />
-        </TabsContent>
-        <TabsContent value="activity" className="mt-4">
+        </div>
+        <div ref={el => sectionRefs.current.documents = el}>
+          <div className="h-full">
+            <DocumentsComplianceTab client={client} activePlacements={activePlacements} candidateMap={candidateMap} compliance={clientCompliance} />
+          </div>
+        </div>
+        <div ref={el => sectionRefs.current.activities = el}>
           <ActivityNotesTab client={client} />
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
 
       <ClientFormDialog client={client} open={showEdit} onOpenChange={setShowEdit} />
-    </div>
-  );
-}
-
-function HeaderStat({ icon: Icon, label, value, accent }) {
-  const accentClass = accent === 'emerald' ? 'text-emerald-600' : accent === 'primary' ? 'text-primary' : 'text-foreground';
-  return (
-    <div>
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Icon className="w-3.5 h-3.5" /> {label}
-      </div>
-      <p className={`font-semibold text-sm mt-1 truncate ${accentClass}`} title={typeof value === 'string' ? value : undefined}>{value}</p>
     </div>
   );
 }
