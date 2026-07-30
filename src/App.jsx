@@ -21,6 +21,7 @@ import Clients from '@/pages/Clients';
 import Compliance from '@/pages/Compliance';
 import Mobilisation from '@/pages/Mobilisation';
 import Timesheets from '@/pages/Timesheets';
+import TimesheetTrial from '@/pages/TimesheetTrial';
 import PayrollPrep from '@/pages/PayrollPrep';
 import BillingPrep from '@/pages/BillingPrep';
 import JobOrders from '@/pages/JobOrders';
@@ -73,6 +74,7 @@ const AuthenticatedApp = () => {
           <Route path="/compliance" element={<Compliance />} />
           <Route path="/mobilisation" element={<Mobilisation />} />
           <Route path="/timesheets" element={<Timesheets />} />
+          <Route path="/timesheet-trial" element={<TimesheetTrial />} />
           <Route path="/payroll" element={<PayrollPrep />} />
           <Route path="/billing" element={<BillingPrep />} />
           <Route path="/reports" element={<Reports />} />

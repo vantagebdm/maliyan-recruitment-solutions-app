@@ -16,6 +16,7 @@ const navItems = [
   { label: 'Compliance', icon: ShieldCheck, path: '/compliance' },
   { label: 'Mobilisation', icon: Truck, path: '/mobilisation' },
   { label: 'Timesheets', icon: Clock, path: '/timesheets' },
+  { label: 'Timesheet Trial', icon: Clock, path: '/timesheet-trial' },
   { label: 'Payroll Prep', icon: DollarSign, path: '/payroll' },
   { label: 'Billing Prep', icon: Receipt, path: '/billing' },
   { label: 'Reports', icon: BarChart3, path: '/reports' },
