@@ -8,7 +8,7 @@ import { format } from 'date-fns';
 import { base44 } from '@/api/base44Client';
 
 const DOC_TYPES = [
-  'Resume', 'Passport', 'Driver\'s Licence', 'Trade Certificate', 'White Card',
+  'Resume', 'Passport', 'Birth Certificate', 'Driver\'s Licence', 'Trade Certificate', 'White Card',
   'High Risk Licence', 'Medical Certificate', 'Police Clearance', 'Tax File Declaration',
   'Superannuation Form', 'Bank Details', 'Employment Contract', 'Induction Certificate', 'Other'
 ];
