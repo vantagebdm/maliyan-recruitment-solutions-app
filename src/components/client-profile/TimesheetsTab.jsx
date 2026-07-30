@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
 import StatusBadge from '@/components/shared/StatusBadge';
+import ClientSection from '@/components/client-profile/ClientSection';
 import { Calendar, Clock, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -41,14 +42,15 @@ export default function TimesheetsTab({ timesheets, placements, client }) {
   };
 
   return (
-    <div className="space-y-3">
-      <div className="flex justify-end">
-        <Button size="sm" onClick={() => setShowForm(true)} className="gap-1.5"><Plus className="w-4 h-4" /> Add Timesheet</Button>
-      </div>
+    <ClientSection
+      icon={Clock}
+      title="Timesheets"
+      action={<Button size="sm" onClick={() => setShowForm(true)} className="gap-1.5"><Plus className="w-4 h-4" /> Add Timesheet</Button>}
+    >
       {timesheets.length === 0 ? (
-        <p className="text-sm text-muted-foreground italic bg-card rounded-xl border border-border p-5">No timesheets recorded for this client.</p>
+        <p className="text-sm text-muted-foreground italic text-center py-6">No timesheets recorded for this client.</p>
       ) : (
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
+        <div className="overflow-hidden rounded-lg border border-border">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>
@@ -75,6 +77,7 @@ export default function TimesheetsTab({ timesheets, placements, client }) {
           </table>
         </div>
       )}
+
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>Add Timesheet</DialogTitle></DialogHeader>
@@ -106,6 +109,6 @@ export default function TimesheetsTab({ timesheets, placements, client }) {
           </form>
         </DialogContent>
       </Dialog>
-    </div>
+    </ClientSection>
   );
 }

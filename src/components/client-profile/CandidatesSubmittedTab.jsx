@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
 import StatusBadge from '@/components/shared/StatusBadge';
-import { Briefcase, Plus } from 'lucide-react';
+import ClientSection from '@/components/client-profile/ClientSection';
+import { Briefcase, Plus, UserCheck } from 'lucide-react';
 
 const statuses = ['submitted', 'reviewing', 'shortlisted', 'interview', 'offered', 'accepted', 'rejected', 'withdrawn'];
 
@@ -38,14 +39,15 @@ export default function CandidatesSubmittedTab({ applications, candidates, jobs,
   };
 
   return (
-    <div className="space-y-3">
-      <div className="flex justify-end">
-        <Button size="sm" onClick={() => setShowForm(true)} className="gap-1.5"><Plus className="w-4 h-4" /> Add Submission</Button>
-      </div>
+    <ClientSection
+      icon={UserCheck}
+      title="Candidate Submissions"
+      action={<Button size="sm" onClick={() => setShowForm(true)} className="gap-1.5"><Plus className="w-4 h-4" /> Add Submission</Button>}
+    >
       {applications.length === 0 ? (
-        <p className="text-sm text-muted-foreground italic bg-card rounded-xl border border-border p-5">No candidates submitted for this client yet.</p>
+        <p className="text-sm text-muted-foreground italic text-center py-6">No candidates submitted for this client yet.</p>
       ) : (
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
+        <div className="overflow-hidden rounded-lg border border-border">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>
@@ -76,6 +78,7 @@ export default function CandidatesSubmittedTab({ applications, candidates, jobs,
           </table>
         </div>
       )}
+
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>Add Submission</DialogTitle></DialogHeader>
@@ -112,6 +115,6 @@ export default function CandidatesSubmittedTab({ applications, candidates, jobs,
           </form>
         </DialogContent>
       </Dialog>
-    </div>
+    </ClientSection>
   );
 }

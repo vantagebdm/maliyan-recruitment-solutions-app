@@ -8,7 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
 import StatusBadge from '@/components/shared/StatusBadge';
-import { Briefcase, MapPin, Calendar, DollarSign, Plus, Search } from 'lucide-react';
+import ClientSection from '@/components/client-profile/ClientSection';
+import { Briefcase, MapPin, Calendar, DollarSign, Plus, Search, UsersRound } from 'lucide-react';
 import { format } from 'date-fns';
 
 const statuses = ['pending', 'active', 'completed', 'terminated', 'on_hold', 'closed'];
@@ -47,16 +48,17 @@ export default function EmployeesPlacementsTab({ placements, candidates, client 
   const sorted = [...placements].sort((a, b) => (b.start_date || '').localeCompare(a.start_date || ''));
 
   return (
-    <div className="space-y-3">
-      <div className="flex justify-end">
-        <Button size="sm" onClick={() => setShowForm(true)} className="gap-1.5"><Plus className="w-4 h-4" /> Add Placement</Button>
-      </div>
+    <ClientSection
+      icon={UsersRound}
+      title="Employees/Placements"
+      action={<Button size="sm" onClick={() => setShowForm(true)} className="gap-1.5"><Plus className="w-4 h-4" /> Add Placement</Button>}
+    >
       {sorted.length === 0 ? (
-        <p className="text-sm text-muted-foreground italic bg-card rounded-xl border border-border p-5">No employees / placements recorded for this client.</p>
+        <p className="text-sm text-muted-foreground italic text-center py-6">No employees / placements recorded for this client.</p>
       ) : (
         <div className="space-y-2">
           {sorted.map(p => (
-            <div key={p.id} className="bg-card rounded-xl border border-border p-4">
+            <div key={p.id} className="rounded-lg border border-border p-3">
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div className="min-w-0">
                   {p.candidate_id ? (
@@ -76,6 +78,7 @@ export default function EmployeesPlacementsTab({ placements, candidates, client 
           ))}
         </div>
       )}
+
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Add Placement</DialogTitle></DialogHeader>
@@ -117,6 +120,6 @@ export default function EmployeesPlacementsTab({ placements, candidates, client 
           </form>
         </DialogContent>
       </Dialog>
-    </div>
+    </ClientSection>
   );
 }

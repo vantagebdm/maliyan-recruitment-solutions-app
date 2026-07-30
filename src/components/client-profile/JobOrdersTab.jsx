@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import StatusBadge from '@/components/shared/StatusBadge';
 import JobFormDialog from '@/components/jobs/JobFormDialog';
+import ClientSection from '@/components/client-profile/ClientSection';
 import { Briefcase, MapPin, Users, Calendar, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -19,16 +20,17 @@ export default function JobOrdersTab({ jobs, client }) {
   const onSave = (form) => createMutation.mutate({ ...form, client_id: client.id, client_name: client.company_name });
 
   return (
-    <div className="space-y-3">
-      <div className="flex justify-end">
-        <Button size="sm" onClick={() => setShowForm(true)} className="gap-1.5"><Plus className="w-4 h-4" /> Add Job Order</Button>
-      </div>
+    <ClientSection
+      icon={Briefcase}
+      title="Job Orders"
+      action={<Button size="sm" onClick={() => setShowForm(true)} className="gap-1.5"><Plus className="w-4 h-4" /> Add Job Order</Button>}
+    >
       {jobs.length === 0 ? (
-        <p className="text-sm text-muted-foreground italic bg-card rounded-xl border border-border p-5">No job orders recorded for this client.</p>
+        <p className="text-sm text-muted-foreground italic text-center py-6">No job orders recorded for this client.</p>
       ) : (
         <div className="space-y-2">
           {jobs.map(job => (
-            <div key={job.id} className="bg-card rounded-xl border border-border p-4">
+            <div key={job.id} className="rounded-lg border border-border p-3">
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div>
                   <h4 className="font-semibold text-sm">{job.title}</h4>
@@ -46,6 +48,6 @@ export default function JobOrdersTab({ jobs, client }) {
         </div>
       )}
       <JobFormDialog open={showForm} onOpenChange={setShowForm} onSave={onSave} isLoading={createMutation.isPending} />
-    </div>
+    </ClientSection>
   );
 }

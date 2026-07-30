@@ -100,6 +100,54 @@
     "logo_url": {
       "type": "string"
     },
+    "client_requirements": {
+      "type": "object",
+      "description": "Standard client recruitment requirements and onboarding expectations",
+      "properties": {
+        "common_positions_recruited": {
+          "type": "string"
+        },
+        "required_qualifications_licences": {
+          "type": "string"
+        },
+        "required_experience": {
+          "type": "string"
+        },
+        "medical_requirements": {
+          "type": "string"
+        },
+        "drug_alcohol_requirements": {
+          "type": "string"
+        },
+        "site_induction_requirements": {
+          "type": "string"
+        },
+        "ppe_uniform_requirements": {
+          "type": "string"
+        },
+        "standard_work_location": {
+          "type": "string"
+        },
+        "standard_roster_shift_hours": {
+          "type": "string"
+        },
+        "travel_accommodation_arrangements": {
+          "type": "string"
+        },
+        "point_of_hire_requirements": {
+          "type": "string"
+        },
+        "recruitment_authoriser": {
+          "type": "string"
+        },
+        "preferred_candidate_requirements": {
+          "type": "string"
+        },
+        "special_onboarding_instructions": {
+          "type": "string"
+        }
+      }
+    },
     "contacts": {
       "type": "array",
       "items": {

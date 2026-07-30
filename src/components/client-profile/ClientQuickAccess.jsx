@@ -1,20 +1,23 @@
 import React from 'react';
 import {
-  Building2, Users, Settings, Briefcase, UserCheck, UsersRound, Clock,
-  Receipt, FileText, ShieldCheck, MessageSquare, Activity
+  Building2, Settings, ClipboardList, Users, MapPin, Briefcase, UserCheck,
+  UsersRound, Clock, Receipt, FileText, ShieldCheck, HardHat, MessageSquare, Activity
 } from 'lucide-react';
 
 const SECTIONS = [
   { id: 'company', label: 'Company Details', icon: Building2 },
-  { id: 'contacts', label: 'Contacts', icon: Users },
   { id: 'operations', label: 'Operational Details', icon: Settings },
+  { id: 'requirements', label: 'Client Requirements', icon: ClipboardList },
+  { id: 'contacts', label: 'Client Contacts', icon: Users },
+  { id: 'sites', label: 'Site Locations', icon: MapPin },
   { id: 'job-orders', label: 'Job Orders', icon: Briefcase },
-  { id: 'candidates', label: 'Candidates Submitted', icon: UserCheck },
+  { id: 'candidates', label: 'Candidate Submissions', icon: UserCheck },
   { id: 'employees', label: 'Employees/Placements', icon: UsersRound },
   { id: 'timesheets', label: 'Timesheets', icon: Clock },
   { id: 'rates', label: 'Rates & Billing', icon: Receipt },
-  { id: 'documents', label: 'Documents', icon: FileText },
-  { id: 'compliance', label: 'Compliance', icon: ShieldCheck },
+  { id: 'documents', label: 'Client Documents', icon: FileText },
+  { id: 'compliance', label: 'Client Compliance', icon: ShieldCheck },
+  { id: 'employee-compliance', label: 'Employee Compliance', icon: HardHat },
   { id: 'comments', label: 'Comments/Notes', icon: MessageSquare },
   { id: 'activities', label: 'Activities', icon: Activity },
 ];

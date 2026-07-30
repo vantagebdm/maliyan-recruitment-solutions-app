@@ -9,15 +9,18 @@ import ClientHeader from '@/components/client-profile/ClientHeader';
 import CurrentWorkforceBanner from '@/components/client-profile/CurrentWorkforceBanner';
 import CompanyDetailsCard from '@/components/client-profile/CompanyDetailsCard';
 import OperationalDetailsCard from '@/components/client-profile/OperationalDetailsCard';
-import ClientCommentsSection from '@/components/client-profile/ClientCommentsSection';
-import ClientComplianceSection from '@/components/client-profile/ClientComplianceSection';
-import ContactsTab from '@/components/client-profile/ContactsTab';
+import ClientRequirementsSection from '@/components/client-profile/ClientRequirementsSection';
+import ClientContactsSection from '@/components/client-profile/ClientContactsSection';
+import SiteLocationsSection from '@/components/client-profile/SiteLocationsSection';
 import JobOrdersTab from '@/components/client-profile/JobOrdersTab';
 import CandidatesSubmittedTab from '@/components/client-profile/CandidatesSubmittedTab';
 import EmployeesPlacementsTab from '@/components/client-profile/EmployeesPlacementsTab';
 import TimesheetsTab from '@/components/client-profile/TimesheetsTab';
 import RatesBillingTab from '@/components/client-profile/RatesBillingTab';
-import DocumentsComplianceTab from '@/components/client-profile/DocumentsComplianceTab';
+import ClientDocumentsSection from '@/components/client-profile/ClientDocumentsSection';
+import ClientComplianceSection from '@/components/client-profile/ClientComplianceSection';
+import EmployeeComplianceSection from '@/components/client-profile/EmployeeComplianceSection';
+import ClientCommentsSection from '@/components/client-profile/ClientCommentsSection';
 import ActivityNotesTab from '@/components/client-profile/ActivityNotesTab';
 
 export default function ClientProfile() {
@@ -83,7 +86,6 @@ export default function ClientProfile() {
   const jobIds = new Set(jobs.map(j => j.id));
   const clientApplications = allApplications.filter(a => jobIds.has(a.job_id));
 
-  // Same linked placement records drive Active Employees + compliance
   const activePlacements = placements.filter(p => p.status === 'active');
   const activeCandidateIds = [...new Set(activePlacements.map(p => p.candidate_id).filter(Boolean))];
   const clientCompliance = allCompliance.filter(c => activeCandidateIds.includes(c.candidate_id));
@@ -123,15 +125,6 @@ export default function ClientProfile() {
   };
 
   const handleUpdate = (data) => updateMutation.mutate(data);
-
-  const logActivity = async (type, description) => {
-    try {
-      const user = await base44.auth.me().catch(() => null);
-      const activities = [...(client.client_activities || []), { type, description, by: user?.full_name || 'System', date: new Date().toISOString() }];
-      await base44.entities.Client.update(id, { client_activities: activities });
-      queryClient.invalidateQueries({ queryKey: ['client', id] });
-    } catch (e) { /* non-critical */ }
-  };
 
   const handleAddComment = async ({ type, text }) => {
     const user = await base44.auth.me().catch(() => null);
@@ -196,54 +189,22 @@ export default function ClientProfile() {
 
       <ClientQuickAccess activeSection={activeSection} onSelect={scrollToSection} />
 
-      {/* Row 1: editable detail cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <div ref={el => sectionRefs.current.company = el}>
-          <CompanyDetailsCard client={client} onUpdate={handleUpdate} />
-        </div>
-        <div ref={el => sectionRefs.current.operations = el}>
-          <OperationalDetailsCard client={client} onUpdate={handleUpdate} />
-        </div>
-      </div>
-
-      {/* Row 2: comments + client compliance */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <div ref={el => sectionRefs.current.comments = el}>
-          <ClientCommentsSection client={client} onAddComment={handleAddComment} onDeleteComment={handleDeleteComment} />
-        </div>
-        <div ref={el => sectionRefs.current.compliance = el}>
-          <ClientComplianceSection client={client} onAddCompliance={handleAddCompliance} onDeleteCompliance={handleDeleteCompliance} />
-        </div>
-      </div>
-
-      {/* Remaining sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <div ref={el => sectionRefs.current.contacts = el}>
-          <ContactsTab client={client} />
-        </div>
-        <div ref={el => sectionRefs.current['job-orders'] = el}>
-          <JobOrdersTab jobs={jobs} client={client} />
-        </div>
-        <div ref={el => sectionRefs.current.candidates = el}>
-          <CandidatesSubmittedTab applications={clientApplications} candidates={allCandidates} jobs={jobs} client={client} />
-        </div>
-        <div ref={el => sectionRefs.current.employees = el}>
-          <EmployeesPlacementsTab placements={placements} candidates={allCandidates} client={client} />
-        </div>
-        <div ref={el => sectionRefs.current.timesheets = el}>
-          <TimesheetsTab timesheets={timesheets} placements={placements} client={client} />
-        </div>
-        <div ref={el => sectionRefs.current.rates = el}>
-          <RatesBillingTab client={client} jobs={jobs} placements={placements} />
-        </div>
-        <div ref={el => sectionRefs.current.documents = el}>
-          <div className="h-full">
-            <DocumentsComplianceTab client={client} activePlacements={activePlacements} candidateMap={candidateMap} compliance={clientCompliance} />
-          </div>
-        </div>
-        <div ref={el => sectionRefs.current.activities = el}>
-          <ActivityNotesTab client={client} />
-        </div>
+        <div ref={el => sectionRefs.current.company = el}><CompanyDetailsCard client={client} onUpdate={handleUpdate} /></div>
+        <div ref={el => sectionRefs.current.operations = el}><OperationalDetailsCard client={client} onUpdate={handleUpdate} /></div>
+        <div ref={el => sectionRefs.current.requirements = el}><ClientRequirementsSection client={client} onUpdate={handleUpdate} /></div>
+        <div ref={el => sectionRefs.current.contacts = el}><ClientContactsSection client={client} /></div>
+        <div ref={el => sectionRefs.current.sites = el}><SiteLocationsSection client={client} /></div>
+        <div ref={el => sectionRefs.current['job-orders'] = el}><JobOrdersTab jobs={jobs} client={client} /></div>
+        <div ref={el => sectionRefs.current.candidates = el}><CandidatesSubmittedTab applications={clientApplications} candidates={allCandidates} jobs={jobs} client={client} /></div>
+        <div ref={el => sectionRefs.current.employees = el}><EmployeesPlacementsTab placements={placements} candidates={allCandidates} client={client} /></div>
+        <div ref={el => sectionRefs.current.timesheets = el}><TimesheetsTab timesheets={timesheets} placements={placements} client={client} /></div>
+        <div ref={el => sectionRefs.current.rates = el}><RatesBillingTab client={client} jobs={jobs} placements={placements} /></div>
+        <div ref={el => sectionRefs.current.documents = el}><ClientDocumentsSection client={client} /></div>
+        <div ref={el => sectionRefs.current.compliance = el}><ClientComplianceSection client={client} onAddCompliance={handleAddCompliance} onDeleteCompliance={handleDeleteCompliance} /></div>
+        <div ref={el => sectionRefs.current['employee-compliance'] = el}><EmployeeComplianceSection activePlacements={activePlacements} candidateMap={candidateMap} compliance={clientCompliance} /></div>
+        <div ref={el => sectionRefs.current.comments = el}><ClientCommentsSection client={client} onAddComment={handleAddComment} onDeleteComment={handleDeleteComment} /></div>
+        <div ref={el => sectionRefs.current.activities = el} className="lg:col-span-2"><ActivityNotesTab client={client} /></div>
       </div>
 
       <ClientFormDialog client={client} open={showEdit} onOpenChange={setShowEdit} />

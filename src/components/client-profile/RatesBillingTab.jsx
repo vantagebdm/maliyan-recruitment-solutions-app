@@ -6,13 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { CreditCard, DollarSign, TrendingUp, Pencil } from 'lucide-react';
+import ClientSection from '@/components/client-profile/ClientSection';
+import { CreditCard, DollarSign, TrendingUp, Pencil, Receipt } from 'lucide-react';
 
-function RateRow({ label, value }) {
+function RateRow({ label, value, hint }) {
   return (
     <div className="flex items-center justify-between py-2 border-b border-border last:border-0">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className="text-sm font-medium text-right">{value || '—'}</span>
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-sm font-medium text-right">{value}{hint && <span className="text-xs text-muted-foreground ml-1">{hint}</span>}</span>
     </div>
   );
 }
@@ -38,39 +39,52 @@ export default function RatesBillingTab({ client, jobs, placements }) {
 
   const onSave = (e) => { e.preventDefault(); updateMutation.mutate(form); };
 
-  const chargeRates = placements.map(p => p.charge_rate).filter(Boolean);
-  const payRates = placements.map(p => p.pay_rate).filter(Boolean);
-  const maxCharge = chargeRates.length ? Math.max(...chargeRates) : null;
-  const avgPay = payRates.length ? (payRates.reduce((a, b) => a + b, 0) / payRates.length).toFixed(2) : null;
-  const margin = (maxCharge != null && avgPay != null) ? (maxCharge - Number(avgPay)).toFixed(2) : null;
+  // Rate summary derived from linked placements AND job orders
+  const pCharge = placements.map(p => p.charge_rate).filter(Boolean);
+  const pPay = placements.map(p => p.pay_rate).filter(Boolean);
+  const jCharge = jobs.map(j => j.charge_rate).filter(Boolean);
+  const jPay = jobs.map(j => j.pay_rate).filter(Boolean);
+  const allCharge = [...pCharge, ...jCharge];
+  const allPay = [...pPay, ...jPay];
+  const maxCharge = allCharge.length ? Math.max(...allCharge) : null;
+  const avgCharge = allCharge.length ? (allCharge.reduce((a, b) => a + b, 0) / allCharge.length).toFixed(2) : null;
+  const avgPay = allPay.length ? (allPay.reduce((a, b) => a + b, 0) / allPay.length).toFixed(2) : null;
+  const minPay = allPay.length ? Math.min(...allPay) : null;
+  const maxMargin = (maxCharge != null && minPay != null) ? (maxCharge - minPay).toFixed(2) : null;
+  const activePlacements = placements.filter(p => p.status === 'active').length;
+  const openJobs = jobs.filter(j => j.status === 'open').length;
 
   return (
-    <div className="space-y-3">
-      <div className="flex justify-end">
-        <Button size="sm" onClick={() => setShowForm(true)} className="gap-1.5"><Pencil className="w-4 h-4" /> Edit Billing</Button>
-      </div>
+    <ClientSection
+      icon={Receipt}
+      title="Rates & Billing"
+      action={<Button size="sm" onClick={() => setShowForm(true)} className="gap-1.5"><Pencil className="w-4 h-4" /> Edit Billing</Button>}
+    >
       <div className="grid md:grid-cols-2 gap-4">
-        <div className="bg-card rounded-xl border border-border p-5">
-          <h3 className="font-semibold mb-3 flex items-center gap-2"><CreditCard className="w-4 h-4 text-primary" /> Billing Configuration</h3>
-          <RateRow label="ABN" value={client.abn} />
-          <RateRow label="Payment Terms" value={client.payment_terms} />
-          <RateRow label="Billing Address" value={client.billing_address} />
-          <RateRow label="Invoicing Requirements" value={client.invoicing_requirements} />
+        <div className="rounded-lg border border-border p-4">
+          <h4 className="font-semibold text-sm flex items-center gap-2 mb-3"><CreditCard className="w-4 h-4 text-primary" />Billing Configuration</h4>
+          <RateRow label="ABN" value={client.abn || '—'} />
+          <RateRow label="Payment Terms" value={client.payment_terms || '—'} />
+          <RateRow label="Billing Address" value={client.billing_address || '—'} />
+          <RateRow label="Invoicing Requirements" value={client.invoicing_requirements || '—'} />
           <div className="mt-3 pt-3 border-t border-border">
-            <span className="text-sm text-muted-foreground">Approved Rates</span>
+            <span className="text-xs text-muted-foreground">Approved Rates</span>
             <p className="text-sm font-medium mt-1 whitespace-pre-wrap">{client.approved_rates || 'No approved rates documented.'}</p>
           </div>
         </div>
-        <div className="bg-card rounded-xl border border-border p-5">
-          <h3 className="font-semibold mb-3 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /> Rate Summary</h3>
-          <RateRow label="Highest Charge Rate" value={maxCharge != null ? `$${maxCharge}/hr` : null} />
-          <RateRow label="Average Pay Rate" value={avgPay != null ? `$${avgPay}/hr` : null} />
-          <RateRow label="Max Margin" value={margin != null ? `$${margin}/hr` : null} />
-          <RateRow label="Active Placements" value={placements.filter(p => p.status === 'active').length} />
-          <RateRow label="Open Job Orders" value={jobs.filter(j => j.status === 'open').length} />
-          <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"><DollarSign className="w-3.5 h-3.5" /> Rates derived from linked placements and job orders.</div>
+        <div className="rounded-lg border border-border p-4">
+          <h4 className="font-semibold text-sm flex items-center gap-2 mb-3"><TrendingUp className="w-4 h-4 text-primary" />Rate Summary</h4>
+          <RateRow label="Highest Charge Rate" value={maxCharge != null ? `$${maxCharge}/hr` : '—'} />
+          <RateRow label="Average Charge Rate" value={avgCharge != null ? `$${avgCharge}/hr` : '—'} />
+          <RateRow label="Average Pay Rate" value={avgPay != null ? `$${avgPay}/hr` : '—'} />
+          <RateRow label="Lowest Pay Rate" value={minPay != null ? `$${minPay}/hr` : '—'} />
+          <RateRow label="Max Margin" value={maxMargin != null ? `$${maxMargin}/hr` : '—'} />
+          <RateRow label="Active Placements" value={activePlacements} />
+          <RateRow label="Open Job Orders" value={openJobs} hint={`of ${jobs.length}`} />
+          <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"><DollarSign className="w-3.5 h-3.5" />Derived from linked placements & job orders.</div>
         </div>
       </div>
+
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>Edit Billing</DialogTitle></DialogHeader>
@@ -86,6 +100,6 @@ export default function RatesBillingTab({ client, jobs, placements }) {
           </form>
         </DialogContent>
       </Dialog>
-    </div>
+    </ClientSection>
   );
 }
