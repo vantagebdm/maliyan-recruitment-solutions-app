@@ -18,6 +18,7 @@ import Dashboard from '@/pages/Dashboard';
 import Jobs from '@/pages/Jobs';
 import Candidates from '@/pages/Candidates';
 import Clients from '@/pages/Clients';
+import ClientProfile from '@/pages/ClientProfile';
 import Compliance from '@/pages/Compliance';
 import Mobilisation from '@/pages/Mobilisation';
 import Timesheets from '@/pages/Timesheets';
@@ -70,6 +71,7 @@ const AuthenticatedApp = () => {
           <Route path="/candidates" element={<Candidates />} />
           <Route path="/candidates/:id" element={<CandidateCard />} />
           <Route path="/clients" element={<Clients />} />
+          <Route path="/clients/:id" element={<ClientProfile />} />
           <Route path="/job-orders" element={<JobOrders />} />
           <Route path="/compliance" element={<Compliance />} />
           <Route path="/mobilisation" element={<Mobilisation />} />

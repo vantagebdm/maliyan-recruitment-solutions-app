@@ -36,6 +36,13 @@
     "payment_terms": {
       "type": "string"
     },
+    "account_manager": {
+      "type": "string",
+      "description": "Internal Maliyan account manager responsible for this client"
+    },
+    "website": {
+      "type": "string"
+    },
     "notes": {
       "type": "string"
     },

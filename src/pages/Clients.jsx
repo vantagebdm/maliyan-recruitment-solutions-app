@@ -1,24 +1,19 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Search, Building2, Phone, Mail, MapPin, Users, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import StatusBadge from '../components/shared/StatusBadge';
+import ClientFormDialog from '@/components/clients/ClientFormDialog';
 
 export default function Clients() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({});
   const [expandedClient, setExpandedClient] = useState(null);
-  const queryClient = useQueryClient();
 
   const { data: placements = [] } = useQuery({
     queryKey: ['placements'],
@@ -32,32 +27,10 @@ export default function Clients() {
     initialData: [],
   });
 
-  const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Client.create(data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['clients'] }); setShowForm(false); },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Client.update(id, data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['clients'] }); setShowForm(false); setEditing(null); },
-  });
-
   const openForm = (client) => {
     setEditing(client);
-    setForm(client ? { ...client } : { status: 'active' });
     setShowForm(true);
   };
-
-  const handleSave = (e) => {
-    e.preventDefault();
-    if (editing) {
-      updateMutation.mutate({ id: editing.id, data: form });
-    } else {
-      createMutation.mutate(form);
-    }
-  };
-
-  const update = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
 
   const filtered = clients.filter(c =>
     c.company_name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -139,7 +112,7 @@ export default function Clients() {
           {filtered.map(client => (
             <div
               key={client.id}
-              onClick={() => openForm(client)}
+              onClick={() => navigate(`/clients/${client.id}`)}
               className="bg-card rounded-xl border border-border p-5 hover:shadow-md transition-all cursor-pointer"
             >
               <div className="flex items-start gap-3 mb-3">
@@ -213,66 +186,7 @@ export default function Clients() {
         </div>
       )}
 
-      <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editing ? 'Edit Client' : 'Add Client'}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSave} className="space-y-4">
-            <div>
-              <Label>Company Name *</Label>
-              <Input value={form.company_name || ''} onChange={e => update('company_name', e.target.value)} required />
-            </div>
-            <div>
-              <Label>ABN</Label>
-              <Input value={form.abn || ''} onChange={e => update('abn', e.target.value)} />
-            </div>
-            <div>
-              <Label>Industry</Label>
-              <Input value={form.industry || ''} onChange={e => update('industry', e.target.value)} />
-            </div>
-            <div>
-              <Label>Primary Contact Name</Label>
-              <Input value={form.primary_contact_name || ''} onChange={e => update('primary_contact_name', e.target.value)} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Contact Email</Label>
-                <Input value={form.primary_contact_email || ''} onChange={e => update('primary_contact_email', e.target.value)} />
-              </div>
-              <div>
-                <Label>Contact Phone</Label>
-                <Input value={form.primary_contact_phone || ''} onChange={e => update('primary_contact_phone', e.target.value)} />
-              </div>
-            </div>
-            <div>
-              <Label>Billing Address</Label>
-              <Textarea value={form.billing_address || ''} onChange={e => update('billing_address', e.target.value)} className="h-16" />
-            </div>
-            <div>
-              <Label>Status</Label>
-              <Select value={form.status || 'active'} onValueChange={v => update('status', v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="prospect">Prospect</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Notes</Label>
-              <Textarea value={form.notes || ''} onChange={e => update('notes', e.target.value)} className="h-16" />
-            </div>
-            <div className="flex justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
-              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                {editing ? 'Update' : 'Add Client'}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <ClientFormDialog client={editing} open={showForm} onOpenChange={setShowForm} />
     </div>
   );
 }
