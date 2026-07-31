@@ -19,7 +19,6 @@ import TimesheetsTab from '@/components/client-profile/TimesheetsTab';
 import RatesBillingTab from '@/components/client-profile/RatesBillingTab';
 import ClientDocumentsSection from '@/components/client-profile/ClientDocumentsSection';
 import ClientComplianceSection from '@/components/client-profile/ClientComplianceSection';
-import EmployeeComplianceSection from '@/components/client-profile/EmployeeComplianceSection';
 import ClientCommentsSection from '@/components/client-profile/ClientCommentsSection';
 import ActivityNotesTab from '@/components/client-profile/ActivityNotesTab';
 
@@ -202,7 +201,6 @@ export default function ClientProfile() {
         <div ref={el => sectionRefs.current.rates = el}><RatesBillingTab client={client} jobs={jobs} placements={placements} /></div>
         <div ref={el => sectionRefs.current.documents = el}><ClientDocumentsSection client={client} /></div>
         <div ref={el => sectionRefs.current.compliance = el}><ClientComplianceSection client={client} onAddCompliance={handleAddCompliance} onDeleteCompliance={handleDeleteCompliance} /></div>
-        <div ref={el => sectionRefs.current['employee-compliance'] = el}><EmployeeComplianceSection activePlacements={activePlacements} candidateMap={candidateMap} compliance={clientCompliance} /></div>
         <div ref={el => sectionRefs.current.comments = el}><ClientCommentsSection client={client} onAddComment={handleAddComment} onDeleteComment={handleDeleteComment} /></div>
         <div ref={el => sectionRefs.current.activities = el} className="lg:col-span-2"><ActivityNotesTab client={client} /></div>
       </div>

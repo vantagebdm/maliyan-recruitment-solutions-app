@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Building2, Settings, ClipboardList, Users, MapPin, Briefcase, UserCheck,
-  UsersRound, Clock, Receipt, FileText, ShieldCheck, HardHat, MessageSquare, Activity
+  UsersRound, Clock, Receipt,   FileText, ShieldCheck, MessageSquare, Activity
 } from 'lucide-react';
 
 const SECTIONS = [
@@ -17,7 +17,6 @@ const SECTIONS = [
   { id: 'rates', label: 'Rates & Billing', icon: Receipt },
   { id: 'documents', label: 'Client Documents', icon: FileText },
   { id: 'compliance', label: 'Client Compliance', icon: ShieldCheck },
-  { id: 'employee-compliance', label: 'Employee Compliance', icon: HardHat },
   { id: 'comments', label: 'Comments/Notes', icon: MessageSquare },
   { id: 'activities', label: 'Activities', icon: Activity },
 ];
