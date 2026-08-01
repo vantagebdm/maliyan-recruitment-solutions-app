@@ -16,7 +16,7 @@ export default function ClientDocumentsSection({ client }) {
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ type: 'Client Agreement', expiry_date: '' });
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
 
   const updateMutation = useMutation({
@@ -31,22 +31,26 @@ export default function ClientDocumentsSection({ client }) {
 
   const onSave = async (e) => {
     e.preventDefault();
-    if (!file) return;
+    if (files.length === 0) return;
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      const docs = [...(client.client_documents || []), {
-        type: form.type,
-        document_name: file.name,
-        file_url,
-        uploaded_date: new Date().toISOString().slice(0, 10),
-        expiry_date: form.expiry_date || '',
-      }];
+      const uploaded = [];
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        uploaded.push({
+          type: form.type,
+          document_name: file.name,
+          file_url,
+          uploaded_date: new Date().toISOString().slice(0, 10),
+          expiry_date: form.expiry_date || '',
+        });
+      }
+      const docs = [...(client.client_documents || []), ...uploaded];
       await base44.entities.Client.update(client.id, { client_documents: docs });
       queryClient.invalidateQueries({ queryKey: ['client', client.id] });
       setShowForm(false);
       setForm({ type: 'Client Agreement', expiry_date: '' });
-      setFile(null);
+      setFiles([]);
     } finally {
       setUploading(false);
     }
@@ -100,11 +104,15 @@ export default function ClientDocumentsSection({ client }) {
                 <SelectContent>{DOC_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div><Label>File *</Label><Input type="file" onChange={e => setFile(e.target.files?.[0] || null)} required /></div>
+            <div>
+              <Label>Files *</Label>
+              <Input type="file" multiple onChange={e => setFiles(Array.from(e.target.files || []))} required />
+              {files.length > 0 && <p className="text-xs text-muted-foreground mt-1">{files.length} file{files.length !== 1 ? 's' : ''} selected</p>}
+            </div>
             <div><Label>Expiry Date</Label><Input type="date" value={form.expiry_date} onChange={e => setForm({ ...form, expiry_date: e.target.value })} /></div>
             <div className="flex justify-end gap-3 pt-2">
               <Button type="button" variant="outline" onClick={() => setShowForm(false)} disabled={uploading}>Cancel</Button>
-              <Button type="submit" disabled={uploading || !file} className="gap-1.5"><Upload className="w-4 h-4" /> {uploading ? 'Uploading...' : 'Upload'}</Button>
+              <Button type="submit" disabled={uploading || files.length === 0} className="gap-1.5"><Upload className="w-4 h-4" /> {uploading ? 'Uploading...' : `Upload${files.length > 1 ? ` ${files.length}` : ''}`}</Button>
             </div>
           </form>
         </DialogContent>
