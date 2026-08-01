@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import PartnerPortal from '@/components/maliyan/PartnerPortal';
 
 const PARTNERS = [
-  { id: 'sts', name: 'STS', fullName: 'STS Recruitment' },
+  { id: 'sts', name: 'STS', fullName: 'Specialised Truck Services' },
   { id: 'nhm', name: 'NHM', fullName: 'NHM' },
   { id: 'app', name: 'APP', fullName: 'APP' },
   { id: 'mip', name: 'MIP Hydraulics', fullName: 'MIP Hydraulics' },
