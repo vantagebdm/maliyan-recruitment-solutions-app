@@ -5,6 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MessageSquare, Save, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import CommentImagePicker from '@/components/shared/CommentImagePicker';
+import CommentAttachments from '@/components/shared/CommentAttachments';
+import { usePasteAttachments } from '@/hooks/usePasteAttachments';
 
 const COMMENT_TYPES = [
   { value: 'general', label: 'General', color: 'bg-slate-500' },
@@ -20,6 +22,7 @@ export default function ClientCommentsSection({ client, onAddComment, onDeleteCo
   const [text, setText] = useState('');
   const [images, setImages] = useState([]);
   const [saving, setSaving] = useState(false);
+  const { handlePaste, pasting } = usePasteAttachments(images, setImages);
 
   const comments = client.client_comments || [];
 
@@ -46,10 +49,10 @@ export default function ClientCommentsSection({ client, onAddComment, onDeleteCo
             {COMMENT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Textarea value={text} onChange={e => setText(e.target.value)} placeholder="Add a comment..." className="h-20" />
-        <CommentImagePicker images={images} onChange={setImages} disabled={saving} />
+        <Textarea value={text} onChange={e => setText(e.target.value)} onPaste={handlePaste} placeholder="Add a comment... (paste images, PDFs, or links)" className="h-20" />
+        <CommentImagePicker images={images} onChange={setImages} disabled={saving || pasting} loading={pasting} />
         <div className="flex justify-end">
-          <Button size="sm" onClick={handleSave} disabled={saving || (!text.trim() && images.length === 0)} className="gap-1">
+          <Button size="sm" onClick={handleSave} disabled={saving || pasting || (!text.trim() && images.length === 0)} className="gap-1">
             <Save className="w-3 h-3" /> Save Comment
           </Button>
         </div>
@@ -78,15 +81,7 @@ export default function ClientCommentsSection({ client, onAddComment, onDeleteCo
                     </div>
                   </div>
                   <p className="text-sm mt-1">{c.text}</p>
-                  {c.images?.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {c.images.map((url, iIdx) => (
-                        <a key={iIdx} href={url} target="_blank" rel="noreferrer" className="block w-14 h-14 rounded-md overflow-hidden border border-border">
-                          <img src={url} alt="attachment" className="w-full h-full object-cover" />
-                        </a>
-                      ))}
-                    </div>
-                  )}
+                  <CommentAttachments images={c.images} />
                 </div>
               </div>
             );

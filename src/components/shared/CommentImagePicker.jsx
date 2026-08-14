@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
  *  - onChange: (string[]) => void
  *  - disabled?: boolean
  */
-export default function CommentImagePicker({ images = [], onChange, disabled }) {
+export default function CommentImagePicker({ images = [], onChange, disabled, loading }) {
   const [uploading, setUploading] = useState(false);
 
   const handleFiles = async (e) => {
@@ -38,7 +38,7 @@ export default function CommentImagePicker({ images = [], onChange, disabled }) 
 
   return (
     <div className="space-y-2">
-      {(images?.length > 0 || uploading) && (
+      {(images?.length > 0 || uploading || loading) && (
         <div className="flex flex-wrap gap-2">
           {(images || []).map((url, idx) => (
             <div key={idx} className="relative group w-16 h-16 rounded-lg overflow-hidden border border-border bg-muted">
@@ -52,7 +52,7 @@ export default function CommentImagePicker({ images = [], onChange, disabled }) 
               </button>
             </div>
           ))}
-          {uploading && (
+          {(uploading || loading) && (
             <div className="w-16 h-16 rounded-lg border border-dashed border-border bg-muted flex items-center justify-center">
               <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
             </div>
@@ -67,10 +67,10 @@ export default function CommentImagePicker({ images = [], onChange, disabled }) 
         )}
       >
         <Paperclip className="w-3.5 h-3.5" />
-        {uploading ? 'Uploading...' : 'Attach images'}
+        {uploading ? 'Uploading...' : loading ? 'Pasting...' : 'Attach images / files'}
         <input
           type="file"
-          accept="image/*"
+          accept="image/*,application/pdf"
           multiple
           className="hidden"
           onChange={handleFiles}
