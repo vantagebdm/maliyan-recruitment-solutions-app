@@ -58,6 +58,11 @@ const statusStyles = {
   applied: 'bg-blue-100 text-blue-700 border-blue-200',
   demobbed: 'bg-slate-100 text-slate-700 border-slate-200',
   archived: 'bg-gray-100 text-gray-600 border-gray-200',
+  // Candidate employment status
+  blacklisted: 'bg-red-600 text-white border-red-600',
+  suspended_host_only: 'bg-orange-100 text-orange-700 border-orange-200',
+  suspended_stood_down: 'bg-amber-100 text-amber-700 border-amber-200',
+  stood_down_investigation: 'bg-red-100 text-red-700 border-red-200',
 };
 
 export default function StatusBadge({ status, className }) {

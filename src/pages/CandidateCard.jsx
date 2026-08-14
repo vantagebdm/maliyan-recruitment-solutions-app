@@ -27,6 +27,15 @@ const STAGE_CONFIG = {
   archived: { label: 'Archived', cls: 'bg-muted text-muted-foreground border-border' },
 };
 
+export const STATUS_CONFIG = {
+  active: { label: 'Active', cls: 'bg-green-500/10 text-green-700 border-green-500/30' },
+  inactive: { label: 'Inactive', cls: 'bg-red-500/10 text-red-600 border-red-500/30' },
+  blacklisted: { label: 'Blacklisted', cls: 'bg-red-600/10 text-red-700 border-red-600/30' },
+  suspended_host_only: { label: 'Suspended (Host Only)', cls: 'bg-orange-500/10 text-orange-700 border-orange-500/30' },
+  suspended_stood_down: { label: 'Suspended (Stood Down)', cls: 'bg-amber-500/10 text-amber-700 border-amber-500/30' },
+  stood_down_investigation: { label: 'Stood Down (Under Investigation)', cls: 'bg-red-500/10 text-red-700 border-red-500/30' },
+};
+
 export default function CandidateCard() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -148,6 +157,12 @@ export default function CandidateCard() {
     queryClient.invalidateQueries({ queryKey: ['candidate', id] });
   };
 
+  const handleStatusChange = async (newStatus) => {
+    await base44.entities.Candidate.update(id, { status: newStatus });
+    await logActivity('stage_changed', `Status changed to ${STATUS_CONFIG[newStatus]?.label || newStatus}`);
+    queryClient.invalidateQueries({ queryKey: ['candidate', id] });
+  };
+
   const scrollToSection = (sectionId) => {
     setActiveSection(sectionId);
     const ref = sectionRefs.current[sectionId];
@@ -210,6 +225,11 @@ export default function CandidateCard() {
               <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${stage.cls}`}>
                 {stage.label}
               </span>
+              {candidate.status && candidate.status !== 'active' && (
+                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${(STATUS_CONFIG[candidate.status] || STATUS_CONFIG.active).cls}`}>
+                  {STATUS_CONFIG[candidate.status]?.label || candidate.status}
+                </span>
+              )}
             </div>
             <h1 className="text-xl font-black tracking-tight mb-2">
               {candidate.first_name} {candidate.last_name}
@@ -263,6 +283,14 @@ export default function CandidateCard() {
               <SelectTrigger className="w-36 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {Object.entries(STAGE_CONFIG).map(([k, v]) => (
+                  <SelectItem key={k} value={k}>{v.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={candidate.status || 'active'} onValueChange={handleStatusChange}>
+              <SelectTrigger className="w-44 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {Object.entries(STATUS_CONFIG).map(([k, v]) => (
                   <SelectItem key={k} value={k}>{v.label}</SelectItem>
                 ))}
               </SelectContent>

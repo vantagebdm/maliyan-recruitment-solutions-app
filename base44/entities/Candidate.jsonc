@@ -126,7 +126,10 @@
       "enum": [
         "active",
         "inactive",
-        "blacklisted"
+        "blacklisted",
+        "suspended_host_only",
+        "suspended_stood_down",
+        "stood_down_investigation"
       ],
       "default": "active"
     },
