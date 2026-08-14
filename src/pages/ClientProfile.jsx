@@ -125,9 +125,9 @@ export default function ClientProfile() {
 
   const handleUpdate = (data) => updateMutation.mutate(data);
 
-  const handleAddComment = async ({ type, text }) => {
+  const handleAddComment = async ({ type, text, images }) => {
     const user = await base44.auth.me().catch(() => null);
-    const comments = [...(client.client_comments || []), { type, text, author_name: user?.full_name || 'Unknown', date: new Date().toISOString() }];
+    const comments = [...(client.client_comments || []), { type, text, images: images || [], author_name: user?.full_name || 'Unknown', date: new Date().toISOString() }];
     await base44.entities.Client.update(id, { client_comments: comments });
     queryClient.invalidateQueries({ queryKey: ['client', id] });
   };

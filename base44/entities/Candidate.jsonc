@@ -213,6 +213,13 @@
           },
           "date": {
             "type": "string"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Image file URLs attached to the comment"
           }
         }
       }

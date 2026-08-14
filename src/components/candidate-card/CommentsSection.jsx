@@ -4,6 +4,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MessageSquare, Save, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import CommentImagePicker from '@/components/shared/CommentImagePicker';
 
 const COMMENT_TYPES = [
   { value: 'interview', label: 'Interview', color: 'bg-blue-500' },
@@ -17,15 +18,17 @@ const COMMENT_TYPES = [
 export default function CommentsSection({ candidate, onAddComment, onDeleteComment }) {
   const [type, setType] = useState('general');
   const [text, setText] = useState('');
+  const [images, setImages] = useState([]);
   const [saving, setSaving] = useState(false);
 
   const comments = candidate.comments || [];
 
   const handleSave = async () => {
-    if (!text.trim()) return;
+    if (!text.trim() && images.length === 0) return;
     setSaving(true);
-    await onAddComment({ type, text: text.trim() });
+    await onAddComment({ type, text: text.trim(), images });
     setText('');
+    setImages([]);
     setSaving(false);
   };
 
@@ -45,8 +48,9 @@ export default function CommentsSection({ candidate, onAddComment, onDeleteComme
           </SelectContent>
         </Select>
         <Textarea value={text} onChange={e => setText(e.target.value)} placeholder="Add a comment..." className="h-20" />
+        <CommentImagePicker images={images} onChange={setImages} disabled={saving} />
         <div className="flex justify-end">
-          <Button size="sm" onClick={handleSave} disabled={saving || !text.trim()} className="gap-1">
+          <Button size="sm" onClick={handleSave} disabled={saving || (!text.trim() && images.length === 0)} className="gap-1">
             <Save className="w-3 h-3" /> Save Comment
           </Button>
         </div>
@@ -76,6 +80,15 @@ export default function CommentsSection({ candidate, onAddComment, onDeleteComme
                     </div>
                   </div>
                   <p className="text-sm mt-1">{c.text}</p>
+                  {c.images?.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {c.images.map((url, iIdx) => (
+                        <a key={iIdx} href={url} target="_blank" rel="noreferrer" className="block w-14 h-14 rounded-md overflow-hidden border border-border">
+                          <img src={url} alt="attachment" className="w-full h-full object-cover" />
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             );

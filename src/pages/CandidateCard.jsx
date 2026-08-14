@@ -98,9 +98,9 @@ export default function CandidateCard() {
     queryClient.invalidateQueries({ queryKey: ['candidate', id] });
   };
 
-  const handleAddComment = async ({ type, text }) => {
+  const handleAddComment = async ({ type, text, images }) => {
     const user = await base44.auth.me().catch(() => null);
-    const comments = [...(candidate.comments || []), { type, text, author_name: user?.full_name || 'Unknown', date: new Date().toISOString() }];
+    const comments = [...(candidate.comments || []), { type, text, images: images || [], author_name: user?.full_name || 'Unknown', date: new Date().toISOString() }];
     await base44.entities.Candidate.update(id, { comments });
     const actType = type === 'phone_call' ? 'phone_call' : type === 'sms_sent' ? 'sms' : 'note';
     await logActivity(actType, `Comment added: ${text.slice(0, 80)}`);
