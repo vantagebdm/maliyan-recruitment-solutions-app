@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, Mail, Phone, MapPin, Star, Linkedin, Facebook, Pencil, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import CandidateFormDialog from '@/components/candidates/CandidateFormDialog';
@@ -35,6 +36,8 @@ export const STATUS_CONFIG = {
   suspended_stood_down: { label: 'Suspended (Stood Down)', cls: 'bg-amber-500/10 text-amber-700 border-amber-500/30' },
   stood_down_investigation: { label: 'Stood Down (Under Investigation)', cls: 'bg-red-500/10 text-red-700 border-red-500/30' },
 };
+
+const SUSPENSION_STATUSES = ['suspended_host_only', 'suspended_stood_down', 'stood_down_investigation'];
 
 export default function CandidateCard() {
   const { id } = useParams();
@@ -158,8 +161,17 @@ export default function CandidateCard() {
   };
 
   const handleStatusChange = async (newStatus) => {
-    await base44.entities.Candidate.update(id, { status: newStatus });
+    const isSus = SUSPENSION_STATUSES.includes(newStatus);
+    const updates = { status: newStatus };
+    if (!isSus) updates.not_attending_site = false;
+    await base44.entities.Candidate.update(id, updates);
     await logActivity('stage_changed', `Status changed to ${STATUS_CONFIG[newStatus]?.label || newStatus}`);
+    queryClient.invalidateQueries({ queryKey: ['candidate', id] });
+  };
+
+  const handleNotAttendingToggle = async (checked) => {
+    await base44.entities.Candidate.update(id, { not_attending_site: checked });
+    await logActivity('stage_changed', checked ? 'Marked as not attending site' : 'Marked as attending site');
     queryClient.invalidateQueries({ queryKey: ['candidate', id] });
   };
 
@@ -194,6 +206,8 @@ export default function CandidateCard() {
   }
 
   const stage = STAGE_CONFIG[candidate.candidate_stage] || STAGE_CONFIG.available;
+  const isSuspended = SUSPENSION_STATUSES.includes(candidate.status);
+  const notAttending = isSuspended && candidate.not_attending_site;
 
   return (
     <div className="space-y-5">
@@ -301,12 +315,20 @@ export default function CandidateCard() {
 
       {/* Current Placement summary */}
       {currentPlacement && (
-        <div className="bg-emerald-500/5 border border-emerald-500/30 rounded-xl p-4 flex items-center gap-3 flex-wrap">
-          <div className="w-9 h-9 rounded-lg bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
-            <Briefcase className="w-4 h-4 text-emerald-600" />
+        <div className={`rounded-xl p-4 flex items-center gap-3 flex-wrap border ${notAttending ? 'bg-red-500/5 border-red-500/30' : 'bg-emerald-500/5 border-emerald-500/30'}`}>
+          <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${notAttending ? 'bg-red-500/15' : 'bg-emerald-500/15'}`}>
+            <Briefcase className={`w-4 h-4 ${notAttending ? 'text-red-600' : 'text-emerald-600'}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <span className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Current Placement</span>
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className={`text-xs font-semibold uppercase tracking-wide ${notAttending ? 'text-red-700' : 'text-emerald-700'}`}>Current Placement</span>
+              {isSuspended && (
+                <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
+                  <Switch checked={!!candidate.not_attending_site} onCheckedChange={handleNotAttendingToggle} />
+                  <span className="text-xs font-semibold text-amber-700">Not attending site</span>
+                </label>
+              )}
+            </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-0.5 text-sm mt-0.5">
               {currentPlacement.client_id ? (
                 <Link to="/clients" className="font-semibold text-primary hover:underline">{currentPlacement.client_name}</Link>

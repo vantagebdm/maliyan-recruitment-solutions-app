@@ -133,6 +133,11 @@
       ],
       "default": "active"
     },
+    "not_attending_site": {
+      "type": "boolean",
+      "default": false,
+      "description": "Flag set when a suspended/stood-down candidate is not attending site while placement remains active"
+    },
     "user_id": {
       "type": "string",
       "description": "Linked user account ID"
