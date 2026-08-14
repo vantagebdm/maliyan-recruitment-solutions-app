@@ -27,7 +27,16 @@ const STATUS_LABEL = {
   on_hold: 'On Hold',
 };
 
-const EMPTY = { client_id: '', client_name: '', job_title: '', site: '', status: 'active', start_date: '', end_date: '', roster: '' };
+const EMP_TYPE_LABEL = {
+  outsourced: 'Outsourced',
+  non_outsourced_company_employee: 'Non Outsourced - Company Employee',
+};
+const EMP_TYPE_STYLE = {
+  outsourced: 'bg-slate-500/10 text-slate-600 border-slate-500/30',
+  non_outsourced_company_employee: 'bg-indigo-500/10 text-indigo-700 border-indigo-500/30',
+};
+
+const EMPTY = { client_id: '', client_name: '', job_title: '', site: '', status: 'active', employment_type: 'outsourced', start_date: '', end_date: '', roster: '' };
 
 export default function PlacementsSection({ candidate, placements = [], clients = [], onAdd, onUpdate, onDelete, isLoadingClients }) {
   const [open, setOpen] = useState(false);
@@ -50,6 +59,7 @@ export default function PlacementsSection({ candidate, placements = [], clients 
       job_title: form.job_title,
       site: form.site,
       status: form.status,
+      employment_type: form.employment_type,
       start_date: form.start_date || null,
       end_date: form.end_date || null,
       roster: form.roster,
@@ -106,6 +116,11 @@ export default function PlacementsSection({ candidate, placements = [], clients 
                     <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium border ${STATUS_STYLES[p.status] || STATUS_STYLES.closed}`}>
                       {STATUS_LABEL[p.status] || p.status}
                     </span>
+                    {p.employment_type && p.employment_type !== 'outsourced' && (
+                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium border ${EMP_TYPE_STYLE[p.employment_type] || EMP_TYPE_STYLE.outsourced}`}>
+                        {EMP_TYPE_LABEL[p.employment_type] || p.employment_type}
+                      </span>
+                    )}
                   </div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                     {p.job_title && <span className="font-medium text-foreground">{p.job_title}</span>}
@@ -179,6 +194,16 @@ export default function PlacementsSection({ candidate, placements = [], clients 
                   <SelectContent>
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="closed">Closed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Employment type</Label>
+                <Select value={form.employment_type || 'outsourced'} onValueChange={v => set('employment_type', v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="outsourced">Outsourced</SelectItem>
+                    <SelectItem value="non_outsourced_company_employee">Non Outsourced - Company Employee</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

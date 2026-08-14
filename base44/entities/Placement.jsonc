@@ -54,6 +54,15 @@
         "closed"
       ],
       "default": "pending"
+    },
+    "employment_type": {
+      "type": "string",
+      "enum": [
+        "outsourced",
+        "non_outsourced_company_employee"
+      ],
+      "default": "outsourced",
+      "description": "Whether the placement is an outsourced contractor or a non-outsourced company employee"
     }
   },
   "required": [
