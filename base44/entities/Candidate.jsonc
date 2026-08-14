@@ -138,6 +138,11 @@
       "default": false,
       "description": "Flag set when a suspended/stood-down candidate is not attending site while placement remains active"
     },
+    "not_currently_available": {
+      "type": "boolean",
+      "default": false,
+      "description": "Manually toggled flag to indicate the candidate is not currently available for work"
+    },
     "user_id": {
       "type": "string",
       "description": "Linked user account ID"

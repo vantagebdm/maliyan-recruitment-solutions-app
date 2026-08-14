@@ -30,7 +30,7 @@ export default function AvailabilitySection({ candidate, onUpdate }) {
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-primary" />
           <h3 className="font-bold text-sm">Availability</h3>
-          {(candidate.not_attending_site || SUSPENSION_STATUSES.includes(candidate.status)) && (
+          {(candidate.not_currently_available || candidate.not_attending_site || SUSPENSION_STATUSES.includes(candidate.status)) && (
             <Badge variant="outline" className="bg-red-500/10 text-red-700 border-red-500/30 text-xs">Not currently available</Badge>
           )}
         </div>
@@ -55,6 +55,7 @@ export default function AvailabilitySection({ candidate, onUpdate }) {
           <Field label="Willing to Relocate" value={candidate.willing_to_relocate ? 'Yes' : 'No'} />
           <Field label="Home Airport" value={candidate.home_airport} />
           <Field label="FIFO Available" value={candidate.fifo_available ? 'Yes' : 'No'} />
+          <Field label="Not Currently Available" value={candidate.not_currently_available ? 'Yes' : 'No'} />
           <Field label="Pay Rate Expectation" value={candidate.pay_rate_expectation ? `$${candidate.pay_rate_expectation}/hr` : null} />
         </div>
       ) : (
@@ -71,6 +72,10 @@ export default function AvailabilitySection({ candidate, onUpdate }) {
           <div className="flex items-center gap-2 pt-5">
             <Switch checked={form.fifo_available || false} onCheckedChange={v => update('fifo_available', v)} />
             <Label className="text-xs">FIFO Available</Label>
+          </div>
+          <div className="flex items-center gap-2 pt-5">
+            <Switch checked={form.not_currently_available || false} onCheckedChange={v => update('not_currently_available', v)} />
+            <Label className="text-xs">Not Currently Available</Label>
           </div>
           <div><Label className="text-xs">Pay Rate Expectation ($/hr)</Label><Input type="number" value={form.pay_rate_expectation || ''} onChange={e => update('pay_rate_expectation', parseFloat(e.target.value))} /></div>
         </div>
