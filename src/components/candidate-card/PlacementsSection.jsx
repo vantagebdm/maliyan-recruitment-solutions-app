@@ -10,6 +10,9 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Plus, Pencil, Trash2, Briefcase, MapPin, Calendar, Clock, Check, ChevronsUpDown, Building2 } from 'lucide-react';
 import { format } from 'date-fns';
 
+const INTERNAL_COMPANY = 'Maliyan';
+const isInternal = (p) => p.employment_type === 'non_outsourced_company_employee';
+
 const STATUS_STYLES = {
   active: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/30',
   closed: 'bg-slate-500/10 text-slate-600 border-slate-500/30',
@@ -50,12 +53,13 @@ export default function PlacementsSection({ candidate, placements = [], clients 
   const openEdit = (p) => { setEditing(p); setForm({ ...EMPTY, ...p }); setOpen(true); };
 
   const handleSave = () => {
-    if (!form.client_id) return;
+    const internal = form.employment_type === 'non_outsourced_company_employee';
+    if (!internal && !form.client_id) return;
     const payload = {
       candidate_id: candidate.id,
       candidate_name: `${candidate.first_name || ''} ${candidate.last_name || ''}`.trim(),
-      client_id: form.client_id,
-      client_name: form.client_name,
+      client_id: internal ? '' : form.client_id,
+      client_name: internal ? INTERNAL_COMPANY : form.client_name,
       job_title: form.job_title,
       site: form.site,
       status: form.status,
@@ -106,12 +110,14 @@ export default function PlacementsSection({ candidate, placements = [], clients 
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div className="space-y-1 min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    {p.client_id ? (
+                    {p.client_id && !isInternal(p) ? (
                       <Link to="/clients" className="text-sm font-semibold text-primary hover:underline inline-flex items-center gap-1">
                         <Building2 className="w-3.5 h-3.5" />{p.client_name || 'Client'}
                       </Link>
                     ) : (
-                      <span className="text-sm font-semibold">{p.client_name}</span>
+                      <span className="text-sm font-semibold inline-flex items-center gap-1">
+                        <Building2 className="w-3.5 h-3.5" />{p.client_name || (isInternal(p) ? INTERNAL_COMPANY : 'Client')}
+                      </span>
                     )}
                     <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium border ${STATUS_STYLES[p.status] || STATUS_STYLES.closed}`}>
                       {STATUS_LABEL[p.status] || p.status}
@@ -149,7 +155,8 @@ export default function PlacementsSection({ candidate, placements = [], clients 
             <DialogTitle>{editing ? 'Edit Placement' : 'Add Placement'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            {/* Client searchable dropdown */}
+            {/* Client searchable dropdown — hidden for internal company employees */}
+            {form.employment_type !== 'non_outsourced_company_employee' && (
             <div className="space-y-1.5">
               <Label className="text-xs">Client *</Label>
               <Popover open={clientOpen} onOpenChange={setClientOpen}>
@@ -177,6 +184,7 @@ export default function PlacementsSection({ candidate, placements = [], clients 
                 </PopoverContent>
               </Popover>
             </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
@@ -223,7 +231,7 @@ export default function PlacementsSection({ candidate, placements = [], clients 
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!form.client_id}>{editing ? 'Update' : 'Add Placement'}</Button>
+            <Button onClick={handleSave} disabled={form.employment_type !== 'non_outsourced_company_employee' && !form.client_id}>{editing ? 'Update' : 'Add Placement'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
