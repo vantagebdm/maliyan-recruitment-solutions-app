@@ -4,6 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Pencil, Check, X, Calendar } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+
+const SUSPENSION_STATUSES = ['suspended_host_only', 'suspended_stood_down', 'stood_down_investigation'];
 
 export default function AvailabilitySection({ candidate, onUpdate }) {
   const [editing, setEditing] = useState(false);
@@ -27,6 +30,9 @@ export default function AvailabilitySection({ candidate, onUpdate }) {
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-primary" />
           <h3 className="font-bold text-sm">Availability</h3>
+          {(candidate.not_attending_site || SUSPENSION_STATUSES.includes(candidate.status)) && (
+            <Badge variant="outline" className="bg-red-500/10 text-red-700 border-red-500/30 text-xs">Not currently available</Badge>
+          )}
         </div>
         {!editing ? (
           <Button variant="ghost" size="sm" onClick={startEdit} className="gap-1 text-xs">
