@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,9 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Search, Upload } from 'lucide-react';
-import TrafficLight from '../components/shared/TrafficLight';
-import StatusBadge from '../components/shared/StatusBadge';
-import { format } from 'date-fns';
+import ComplianceTypeCards from '../components/compliance/ComplianceTypeCards';
 import { base44 as base44Client } from '@/api/base44Client';
 
 const itemTypes = [
@@ -219,42 +216,7 @@ export default function Compliance() {
           <div className="w-6 h-6 border-2 border-muted border-t-primary rounded-full animate-spin" />
         </div>
       ) : (
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/50">
-                <th className="text-left p-3 font-medium">Status</th>
-                <th className="text-left p-3 font-medium">Candidate</th>
-                <th className="text-left p-3 font-medium">Document Type</th>
-                <th className="text-left p-3 font-medium">Expiry Date</th>
-                <th className="text-left p-3 font-medium">Verification</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr><td colSpan={5} className="p-8 text-center text-muted-foreground text-sm">No compliance items found.</td></tr>
-              ) : filtered.map(item => (
-                <tr
-                  key={item.id}
-                  onClick={() => item.source === 'item' ? openForm(item) : item.candidate_id && (window.location.hash = `#/candidates/${item.candidate_id}`)}
-                  className="border-b hover:bg-muted/30 cursor-pointer transition-colors"
-                >
-                  <td className="p-3"><TrafficLight status={item.compliance_status} size="md" /></td>
-                  <td className="p-3 font-medium">
-                    {item.candidate_id ? (
-                      <Link to={`/candidates/${item.candidate_id}`} onClick={e => e.stopPropagation()} className="hover:underline text-primary">
-                        {item.candidate_name || 'Unknown'}
-                      </Link>
-                    ) : (item.candidate_name || 'Unknown')}
-                  </td>
-                  <td className="p-3">{prettyType(item.item_type)}</td>
-                  <td className="p-3">{item.expiry_date ? format(new Date(item.expiry_date), 'dd MMM yyyy') : '—'}</td>
-                  <td className="p-3"><StatusBadge status={item.verification_status} /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ComplianceTypeCards items={filtered} />
       )}
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
