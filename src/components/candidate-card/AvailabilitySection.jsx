@@ -30,8 +30,10 @@ export default function AvailabilitySection({ candidate, onUpdate }) {
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-primary" />
           <h3 className="font-bold text-sm">Availability</h3>
-          {(candidate.not_currently_available || candidate.not_attending_site || SUSPENSION_STATUSES.includes(candidate.status)) && (
+          {(candidate.not_currently_available || candidate.not_attending_site || SUSPENSION_STATUSES.includes(candidate.status)) ? (
             <Badge variant="outline" className="bg-red-500/10 text-red-700 border-red-500/30 text-xs">Not currently available</Badge>
+          ) : (
+            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 border-emerald-500/30 text-xs">Available</Badge>
           )}
         </div>
         {!editing ? (
