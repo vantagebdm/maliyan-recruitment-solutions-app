@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +21,73 @@ const itemTypes = [
   'superannuation', 'tax_file_declaration', 'bank_details', 'employment_contract', 'other'
 ];
 
+const DAYS_SOON = 30;
+
+function computeComplianceStatus(expiryDate, verificationStatus, isDocument = false) {
+  if (verificationStatus === 'expired') return 'expired';
+  if (expiryDate) {
+    const days = (new Date(expiryDate) - new Date()) / 86400000;
+    if (days < 0) return 'expired';
+    if (days < DAYS_SOON) return 'expiring_soon';
+    return 'compliant';
+  }
+  if (isDocument) return 'compliant';
+  return verificationStatus === 'verified' ? 'compliant' : 'missing';
+}
+
+function prettyType(type) {
+  return (type || '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+function buildDerivedItems(candidates = []) {
+  const items = [];
+  candidates.forEach(c => {
+    const name = `${c.first_name || ''} ${c.last_name || ''}`.trim() || c.email || 'Unknown';
+    const verifByKey = {};
+    (c.verifications || []).forEach(v => {
+      const key = (v.item || '').toLowerCase().trim();
+      if (key) verifByKey[key] = v;
+    });
+
+    (c.verifications || []).forEach(v => {
+      const vStatus = v.status === 'verified' ? 'verified' : v.status === 'expired' ? 'rejected' : 'pending';
+      items.push({
+        id: `${c.id}-ver-${v.item}-${v.reference_number || ''}`,
+        candidate_id: c.id,
+        candidate_name: name,
+        item_type: v.item,
+        reference_number: v.reference_number,
+        expiry_date: v.expiry_date,
+        verified_date: v.date_verified,
+        verified_by: v.verified_by,
+        verification_status: vStatus,
+        compliance_status: v.status === 'not_required' ? 'compliant' : computeComplianceStatus(v.expiry_date, v.status),
+        source: 'verification',
+      });
+    });
+
+    (c.documents || []).forEach(d => {
+      const key = (d.type || '').toLowerCase().trim();
+      if (key && verifByKey[key]) return;
+      const vStatus = 'pending';
+      items.push({
+        id: `${c.id}-doc-${d.type}-${d.file_name}`,
+        candidate_id: c.id,
+        candidate_name: name,
+        item_type: d.type,
+        document_name: d.file_name,
+        file_url: d.file_url,
+        expiry_date: d.expiry_date,
+        uploaded_date: d.uploaded_date,
+        verification_status: vStatus,
+        compliance_status: computeComplianceStatus(d.expiry_date, vStatus, true),
+        source: 'document',
+      });
+    });
+  });
+  return items;
+}
+
 export default function Compliance() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -28,9 +96,15 @@ export default function Compliance() {
   const [form, setForm] = useState({});
   const queryClient = useQueryClient();
 
-  const { data: items = [], isLoading } = useQuery({
+  const { data: complianceItems = [], isLoading: loadingItems } = useQuery({
     queryKey: ['compliance'],
     queryFn: () => base44.entities.ComplianceItem.list('-created_date'),
+    initialData: [],
+  });
+
+  const { data: candidates = [], isLoading: loadingCandidates } = useQuery({
+    queryKey: ['candidates-compliance'],
+    queryFn: () => base44.entities.Candidate.list('-created_date', 500),
     initialData: [],
   });
 
@@ -68,21 +142,29 @@ export default function Compliance() {
     update('file_url', file_url);
   };
 
-  const filtered = items.filter(i => {
-    const matchSearch = !search || 
+  const derivedItems = useMemo(() => buildDerivedItems(candidates), [candidates]);
+
+  const allItems = useMemo(() => [
+    ...derivedItems,
+    ...complianceItems.map(i => ({ ...i, source: 'item' })),
+  ], [derivedItems, complianceItems]);
+
+  const filtered = allItems.filter(i => {
+    const matchSearch = !search ||
       i.candidate_name?.toLowerCase().includes(search.toLowerCase()) ||
       i.item_type?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === 'all' || i.compliance_status === statusFilter;
     return matchSearch && matchStatus;
   });
 
-  // Group stats
   const stats = {
-    compliant: items.filter(i => i.compliance_status === 'compliant').length,
-    expiring_soon: items.filter(i => i.compliance_status === 'expiring_soon').length,
-    expired: items.filter(i => i.compliance_status === 'expired').length,
-    missing: items.filter(i => i.compliance_status === 'missing').length,
+    compliant: allItems.filter(i => i.compliance_status === 'compliant').length,
+    expiring_soon: allItems.filter(i => i.compliance_status === 'expiring_soon').length,
+    expired: allItems.filter(i => i.compliance_status === 'expired').length,
+    missing: allItems.filter(i => i.compliance_status === 'missing').length,
   };
+
+  const isLoading = loadingItems || loadingCandidates;
 
   return (
     <div className="space-y-6">
@@ -129,6 +211,7 @@ export default function Compliance() {
             <SelectItem value="missing">Missing</SelectItem>
           </SelectContent>
         </Select>
+        <span className="text-xs text-muted-foreground ml-auto">{filtered.length} items</span>
       </div>
 
       {isLoading ? (
@@ -148,11 +231,23 @@ export default function Compliance() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(item => (
-                <tr key={item.id} onClick={() => openForm(item)} className="border-b hover:bg-muted/30 cursor-pointer transition-colors">
+              {filtered.length === 0 ? (
+                <tr><td colSpan={5} className="p-8 text-center text-muted-foreground text-sm">No compliance items found.</td></tr>
+              ) : filtered.map(item => (
+                <tr
+                  key={item.id}
+                  onClick={() => item.source === 'item' ? openForm(item) : item.candidate_id && (window.location.hash = `#/candidates/${item.candidate_id}`)}
+                  className="border-b hover:bg-muted/30 cursor-pointer transition-colors"
+                >
                   <td className="p-3"><TrafficLight status={item.compliance_status} size="md" /></td>
-                  <td className="p-3 font-medium">{item.candidate_name || 'Unknown'}</td>
-                  <td className="p-3">{item.item_type?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</td>
+                  <td className="p-3 font-medium">
+                    {item.candidate_id ? (
+                      <Link to={`/candidates/${item.candidate_id}`} onClick={e => e.stopPropagation()} className="hover:underline text-primary">
+                        {item.candidate_name || 'Unknown'}
+                      </Link>
+                    ) : (item.candidate_name || 'Unknown')}
+                  </td>
+                  <td className="p-3">{prettyType(item.item_type)}</td>
                   <td className="p-3">{item.expiry_date ? format(new Date(item.expiry_date), 'dd MMM yyyy') : '—'}</td>
                   <td className="p-3"><StatusBadge status={item.verification_status} /></td>
                 </tr>
@@ -177,7 +272,7 @@ export default function Compliance() {
               <Select value={form.item_type || ''} onValueChange={v => update('item_type', v)}>
                 <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
                 <SelectContent>
-                  {itemTypes.map(t => <SelectItem key={t} value={t}>{t.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</SelectItem>)}
+                  {itemTypes.map(t => <SelectItem key={t} value={t}>{prettyType(t)}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
