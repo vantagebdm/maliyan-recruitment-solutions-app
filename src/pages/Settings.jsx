@@ -1,6 +1,6 @@
 import SiteTransferExport from "@/components/SiteTransferExport";
 import React from 'react';
-import { Settings as SettingsIcon, Building2, Bell, Shield, Users } from 'lucide-react';
+import { Building2, Bell, Shield, Users } from 'lucide-react';
 
 const sections = [
   {
