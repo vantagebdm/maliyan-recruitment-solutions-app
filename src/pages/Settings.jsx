@@ -1,3 +1,4 @@
+import SiteTransferExport from "@/components/SiteTransferExport";
 import React from 'react';
 import { Settings as SettingsIcon, Building2, Bell, Shield, Users } from 'lucide-react';
 
@@ -31,6 +32,7 @@ export default function Settings() {
         <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
         <p className="text-sm text-muted-foreground mt-1">Platform configuration and preferences</p>
       </div>
+      <SiteTransferExport />
       <div className="grid gap-4">
         {sections.map((s) => (
           <div key={s.title} className="bg-card rounded-xl border border-border p-5 flex items-start gap-4">
